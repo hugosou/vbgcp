@@ -1,6 +1,7 @@
 # Probabilistic Tensor Decomposition of Neural Population Spiking Activity
 
 [![][license-img]][license-url]
+
 [license-img]: https://img.shields.io/github/license/mashape/apistatus.svg
 
 
