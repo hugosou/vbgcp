@@ -3,7 +3,7 @@
 [![][license-img]][license-url]
 
 [license-img]: https://img.shields.io/github/license/mashape/apistatus.svg
-[license-url]: https://github.com/hugosou/vbgcp/blob/main/LICENSE
+[license-url]: https://github.com/hugosou/vbgcp/blob/main/LICENSE.md
 
 
 Implementation of [Bayesian tensor decomposition of population neural spike trains](https://arxiv.org/abs/2030.12345). (A) Graphical model. (B) The Offset tensor $\mathcal{V}$ is constrained to vary along a limited set of dimensions. (C) $\mathcal{W}$ is a low rank tensor.
