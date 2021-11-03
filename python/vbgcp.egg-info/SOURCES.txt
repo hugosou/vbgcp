@@ -1,0 +1,17 @@
+README.md
+setup.py
+examples/tmp.py
+examples/toydata.py
+vbgcp/Lib.py
+vbgcp/__init__.py
+vbgcp/_variational_updates.py
+vbgcp/components.py
+vbgcp/main.py
+vbgcp/tests.py
+vbgcp/utils.py
+vbgcp/vb_gcp.py
+vbgcp.egg-info/PKG-INFO
+vbgcp.egg-info/SOURCES.txt
+vbgcp.egg-info/dependency_links.txt
+vbgcp.egg-info/requires.txt
+vbgcp.egg-info/top_level.txt
