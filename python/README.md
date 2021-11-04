@@ -1,16 +1,17 @@
 # Probabilistic Tensor Decomposition of Neural Population Spiking Activity
+## Python implementation (in development, see [../matlab/](https://github.com/hugosou/vbgcp/tree/main/matlab/) )
 
-[![][license-img]][license-url]
 
-[license-img]: https://img.shields.io/github/license/mashape/apistatus.svg
+[license-img]: https://img.shields.io/badge/license-MIT-green
 [license-url]: https://github.com/hugosou/vbgcp/blob/main/LICENSE.md
 
+[python-img]:https://img.shields.io/badge/python-v3.8-blue
+[python-url]: https://github.com/hugosou/vbgcp/tree/main/python
 
+[matlab-img]:https://img.shields.io/badge/matlab-R2020-orange
+[matlab-url]: https://github.com/hugosou/vbgcp/tree/main/python
 
-
-Implementation of [Bayesian tensor decomposition of population neural spike trains](https://arxiv.org/abs/2030.12345). (A) Graphical model. (B) The Offset tensor $\mathcal{V}$ is constrained to vary along a limited set of dimensions. (C) $\mathcal{W}$ is a low rank tensor.
-
-![alt text](figure_model.png "Model")
+[![][license-img]][license-url] [![][python-img]][python-url] 
 
 ## Requirements
 - MATLAB R2020a
@@ -33,17 +34,5 @@ PG approximation Figures can be generated with:
 
 ```
 study_polyagamma.m
-```
-
-## Data Analysis
-
-We process results from  S.Keshavarzi (2021) https://doi.org/10.1101/2021.01.22.427789 and benchmark performance of our method compared to standard (G)CP baselines in terms of Variance Explained (A)  Deviance Explained (B) and a robustness/similarity metric (C)
-
-![alt text](performance_final.png  "Perf")
-
-Figure generated using:
-```
-data_benchmark.m
-data_benchmark_process.m
 ```
 

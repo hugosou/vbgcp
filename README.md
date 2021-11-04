@@ -1,7 +1,6 @@
 # Probabilistic Tensor Decomposition of Neural Population Spiking Activity
 
 
-
 [license-img]: https://img.shields.io/badge/license-MIT-green
 [license-url]: https://github.com/hugosou/vbgcp/blob/main/LICENSE.md
 
@@ -9,11 +8,11 @@
 [python-url]: https://github.com/hugosou/vbgcp/tree/main/python
 
 [matlab-img]:https://img.shields.io/badge/matlab-R2020-orange
-[matlab-url]: https://github.com/hugosou/vbgcp/tree/main/python
+[matlab-url]: https://github.com/hugosou/vbgcp/tree/main/matlab
 
-[![][license-img]][license-url] [![][matlab-img]][matlab-url] [![][python-img]][python-url]
+[![][license-img]][license-url] [![][matlab-img]][matlab-url] 
 
-Matlab (**recommended**) and Python (in developement) implementations of [Soulat et al. (2021)](https://arxiv.org/abs/2030.12345).
+[Matlab]([matlab-url]) (recommended) and Python (in developement) implementations of [Soulat et al. (2021)](https://arxiv.org/abs/2030.12345).
 
 ![alt text](model_summary.png "Model")
 
