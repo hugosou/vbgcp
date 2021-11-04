@@ -21,7 +21,7 @@ tensor_rank = 6
 fit_params = FitParams(observed_tensor.shape, tensor_rank,
                        observed_data=observed_data, fit_offset_dim=[1, 0, 1, 0, 0],
                        shared_precision_dim=[0, 1, 1, 1, 1], shared_precision_mode=0,
-                       neuron_groups=neuron_groups, ite_max=4000)
+                       neuron_groups=neuron_groups, ite_max=2)
 
 vbgcp = VBGCPTensor(observed_tensor.shape, tensor_rank, shape_param=120, fit_params=fit_params)
 vbgcp.variational_inference(observed_tensor)
@@ -71,6 +71,13 @@ plot_factors(params['factors'])
 # TODO: check that normalise cp with Normdim works !
 
 
+# TODO also reorder the variance ?
+# TODO: add a checker for size and rank. reorder and normalize cp. Then use first CPs if rank different from ref
+# TODO: check that normalise cp with Normdim works !
+
+# TODO: check offset + add similarity + check initialization + plot and normalize cariance, check missing data
+# TODO: when checking offset, also chek init of the offset
+# TODO: add disppct
 
 
 

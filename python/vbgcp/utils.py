@@ -212,12 +212,8 @@ def get_similarity(models, ref_model=0, used_dims=None):
         rapp = np.sum(ref_norms > 1e-15)  # In case some CP are zeros
         cur_product = (1 - dif12 / (max12 + 1e-15)) * cur_product / rapp
 
-        print(cur_product)
-
         # Use Munkres (Hungarian) Algorithm for Linear Assignment Problem on cur_product
         cur_col, cur_perm = linear_sum_assignment(-cur_product)
-
-        print(cur_perm)
 
         # Similarities
         cur_sum = np.sum(cur_product[cur_col, cur_perm])
@@ -238,8 +234,6 @@ def get_similarity(models, ref_model=0, used_dims=None):
 
 def reorder_models(models, ref_model=0, smlty=None, perm_final=None, sign_final=None):
     """Align CP models based on a similarity metric"""
-
-    print(perm_final)
 
     # TODO RENAME SMLT PERM AND SIGN and remove sm
     if (perm_final is None) or (sign_final is None):
@@ -263,7 +257,6 @@ def reorder_models(models, ref_model=0, smlty=None, perm_final=None, sign_final=
         for dim_ext in np.arange(len(cur_model)):
             new_model.append(cur_model[dim_ext][:, cur_perm] * np.expand_dims(cur_sign[:, dim_ext], axis=0))
 
-        print(cur_perm)
         models_ordered.append(new_model)
 
 
