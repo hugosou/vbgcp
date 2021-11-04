@@ -12,7 +12,7 @@
 
 [![][license-img]][license-url] [![][matlab-img]][matlab-url] 
 
-[Matlab]([matlab-url]) (recommended) and Python (in developement) implementations of [Soulat et al. (2021)](https://arxiv.org/abs/2030.12345).
+[Matlab](matlab-url) (recommended) and Python (in developement) implementations of [Soulat et al. (2021)](https://arxiv.org/abs/2030.12345).
 
 ![alt text](model_summary.png "Model")
 
