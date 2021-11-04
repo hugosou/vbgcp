@@ -1,5 +1,5 @@
 import numpy as np
-from utils import get_AAt, unfold, khatri_rao, fold, compact_to_full_offset
+from vbgcp.utils import get_AAt, unfold, khatri_rao, fold, compact_to_full_offset
 
 
 class Mixin:

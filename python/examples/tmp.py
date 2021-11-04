@@ -1,36 +1,23 @@
-#%% The only difference!
-
-import numpy as np
 # import jax.numpy as jnp
+import numpy as np
 import matplotlib.pyplot as plt
-
-from toydata import build_toydaset
-from vb_gcp import VBGCPTensor
-from components import FitParams
-from utils import plot_factors
-
+from examples.toydata import build_toydaset
+from vbgcp.vb_gcp import VBGCPTensor
+from vbgcp.components import FitParams
+from vbgcp.utils import (plot_factors, expand_factors, get_similarity, reorder_models)
 
 np.random.seed(1)
 params = build_toydaset(add_offset=1)
 
 factors_true = params['factors']
 observed_tensor = params['observed_tensor']
-#observed_data = params['observed_data']
 neuron_groups = params['neurons_groups']
-
 
 observed_data = np.random.rand(*observed_tensor.shape) > 0.5
 observed_tensor = observed_tensor * observed_data
 
-
-import scipy.io
-from components import *
-from utils import *
-from vb_gcp import VBGCPTensor
-
-
-
 tensor_rank = 6
+
 fit_params = FitParams(observed_tensor.shape, tensor_rank,
                        observed_data=observed_data, fit_offset_dim=[1, 0, 1, 0, 0],
                        shared_precision_dim=[0, 1, 1, 1, 1], shared_precision_mode=0,
@@ -41,13 +28,6 @@ vbgcp.variational_inference(observed_tensor)
 
 #%%
 
-
-
-
-
-#%%
-
-
 models = [expand_factors(factors_true, 6), vbgcp.posteriors.factors_mean]
 smlty, _,_ = get_similarity(models)
 print(smlty)
@@ -56,12 +36,7 @@ models = reorder_models(models)
 
 plt.figure()
 plot_factors(models[0])
-plot_factors(models[1], color='g')
-
-#%%
-
-
-
+plot_factors(models[1], color='m')
 
 #%%
 plt.figure(figsize=(8, 4))

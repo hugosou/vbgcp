@@ -1,5 +1,5 @@
 import numpy as np
-from utils import cp_to_tensor
+from vbgcp.utils import cp_to_tensor
 
 
 def build_toydaset(tshape=np.array([100, 70, 3, 4, 5]), add_offset=1, add_missing=0, model='negative_binomial'):

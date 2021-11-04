@@ -1,17 +1,18 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from utils import normalize_cp, plot_factors, cp_to_tensor, get_dim_factors, rand_factors, vectorize, \
+from vbgcp.utils import normalize_cp, plot_factors, cp_to_tensor, get_dim_factors, rand_factors, vectorize, \
     check_rank_factors, eyes_precisions, zeros_factors, get_AAt, unfold, khatri_rao, fold, compact_to_full_offset, \
     pg_moment, pg_moment
-from components import FitParams, VBGCPPriors, VBGCPPosteriors
+
+from vbgcp.components import FitParams, VBGCPPriors, VBGCPPosteriors
 from scipy.special import gammaln, psi
 import scipy.optimize
 
 
-import _variational_updates
+import vbgcp._variational_updates
 
 
-class VBGCPTensor(_variational_updates.Mixin):
+class VBGCPTensor(vbgcp._variational_updates.Mixin):
     def __init__(self, tensor_shape, tensor_rank, shape_param=None, fit_params=None, priors=None, posteriors=None):
         """
         :param tensor_shape: Dimensions of the problem

@@ -1,5 +1,5 @@
 import numpy as np
-from utils import get_dim_factors, rand_factors, check_rank_factors, eyes_precisions, \
+from vbgcp.utils import get_dim_factors, rand_factors, check_rank_factors, eyes_precisions, \
     zeros_factors, compact_to_full_offset
 
 
