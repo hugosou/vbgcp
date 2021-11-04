@@ -10,7 +10,7 @@
 [matlab-img]:https://img.shields.io/badge/matlab-R2020-orange
 [matlab-url]: https://github.com/hugosou/vbgcp/tree/main/matlab
 
-[![][license-img]][license-url] [![][matlab-img]][matlab-url] 
+[![][license-img]][license-url] [![][matlab-img]][matlab-url] [![][python-img]][python-url] 
 
 [Matlab][matlab-url] (recommended) and [Python][python-url] (in developement) implementations of [Soulat et al. (2021)](https://arxiv.org/abs/2030.12345).
 
