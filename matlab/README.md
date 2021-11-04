@@ -14,6 +14,15 @@
 [![][license-img]][license-url] [![][matlab-img]][matlab-url] 
 
 
+Matlab implementations of [Soulat et al. (2021)](https://arxiv.org/abs/2030.12345).
+
+![alt text](../model_summary.png "Model")
+
+The model (A) decomposes an observed count tensor (eg. binned spikes) using a Negative Binomial distribution that depends on a shape parameter, a constrained offset (B) and low rank tensor (C). 
+Variational inference is implemented using a Pólya-Gamma augmentation scheme. 
+
+![alt text](../model_graphical.png "Model")
+
 ## Requirements
 - MATLAB R2020a
 
