@@ -56,7 +56,7 @@ end
 
 % Shared initialization
 vi_var0 = struct();
-vi_var0.shape = 80;
+vi_var0.shape = 120;
 vi_param.disppct = 0.1;
 
 % With ARD
@@ -158,8 +158,8 @@ offset_tru = squeeze(true_params.offset(:,1,1,:,1));
 figure;
 for ll = 1:size(offset_fit,2)
 subplot(size(offset_fit,2),1,ll); hold on
-    plot(offset_fit(:,ll))
-    plot(offset_tru(:,ll))
+    plot(offset_fit(:,ll), 'k')
+    plot(offset_tru(:,ll), 'm')
 end
 
 figure; imagesc(squeeze(observed_data(:,1,1,:,1)))

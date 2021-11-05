@@ -16,20 +16,24 @@ neuron_groups = params['neurons_groups']
 observed_data = np.random.rand(*observed_tensor.shape) > 0.5
 observed_tensor = observed_tensor * observed_data
 
+
+
 tensor_rank = 6
 
 fit_params = FitParams(observed_tensor.shape, tensor_rank,
                        observed_data=observed_data, fit_offset_dim=[1, 0, 1, 0, 0],
                        shared_precision_dim=[0, 1, 1, 1, 1], shared_precision_mode=0,
-                       neuron_groups=neuron_groups, ite_max=2)
+                       neuron_groups=neuron_groups, ite_max=100)
 
-vbgcp = VBGCPTensor(observed_tensor.shape, tensor_rank, shape_param=120, fit_params=fit_params)
+
+#vbgcp.fit_params.observed_data = observed_data
+vbgcp = VBGCPTensor(observed_tensor.shape, tensor_rank, shape_param=80, fit_params=fit_params)
 vbgcp.variational_inference(observed_tensor)
 
 #%%
 
 models = [expand_factors(factors_true, 6), vbgcp.posteriors.factors_mean]
-smlty, _,_ = get_similarity(models)
+smlty, _, _ = get_similarity(models)
 print(smlty)
 models = reorder_models(models)
 
@@ -37,6 +41,38 @@ models = reorder_models(models)
 plt.figure()
 plot_factors(models[0])
 plot_factors(models[1], color='m')
+
+
+#%%
+plt.figure()
+plot_factors(vbgcp.posteriors.factors_mean, vbgcp.posteriors.factors_variance, color='k')
+
+#%%
+
+
+offset_true = np.squeeze(params['offset'])
+offset_fit = vbgcp.posteriors.offset_mean[:, 0, :, 0, 0]
+offset_var = vbgcp.posteriors.offset_variance[:, 0, :, 0, 0]
+
+
+plt.figure()
+for ii in np.arange(offset_true.shape[1]):
+
+    xcur = np.arange(len(offset_fit[:, ii]))
+    true_cur = offset_true[:, ii]
+    fit_cur = offset_fit[:, ii]
+
+    plt.subplot(offset_true.shape[1], 1, ii+1)
+    plt.plot(xcur, true_cur, c='m')
+    plt.plot(xcur, fit_cur, c='k')
+
+
+    up = fit_cur + 1 * np.sqrt(offset_var[:, ii])
+    lo = fit_cur - 1 * np.sqrt(offset_var[:, ii])
+    plt.fill_between(xcur, lo, up, color='k', alpha=0.2)
+
+
+
 
 #%%
 plt.figure(figsize=(8, 4))

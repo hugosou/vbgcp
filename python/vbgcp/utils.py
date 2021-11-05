@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from scipy.optimize import linear_sum_assignment
 
 
-# TODO: implement plot cp and normalize for CP and variance associated !
 def vectorize(tensor):
     return np.reshape(tensor, (-1))
 
@@ -30,16 +29,35 @@ def rand_factors(shape, rank, weight=1):
     return [weight * np.random.rand(dim, rank) for dim in shape]
 
 
-def plot_factors(factors, color ='k'):
-    # TODO: implement plot cp and normalize for CP and variance associated !
+def plot_factors(factors, variances=None, color='k', nstd=1):
+
     rank = check_rank_factors(factors)
     shape = get_dim_factors(factors)
 
-    #plt.figure()
+    if not(variances is None):
+        vrank = check_rank_factors(variances)
+        vshape = get_dim_factors(variances)
+        diag_id = np.arange(rank) * rank + np.arange(rank)
+        assert vrank == rank**2
+        assert vshape == shape
+        plot_variance = True
+    else:
+        plot_variance = False
+
     for ii in range(rank):
         for jj in range(len(shape)):
+
+            pcur = factors[jj][:, ii]
+            xcur = np.arange(shape[jj])
+
             plt.subplot(rank, len(shape), 1 + jj + ii * len(shape))
-            plt.scatter(np.arange(shape[jj]), factors[jj][:, ii], c=color)
+            plt.scatter(xcur, pcur, c=color)
+
+            if plot_variance:
+                vcur = variances[jj][:, diag_id[ii]]
+                up = pcur + nstd * np.sqrt(vcur)
+                lo = pcur - nstd * np.sqrt(vcur)
+                plt.fill_between(xcur, lo,  up, color=color, alpha=0.2)
 
             if ii == 0:
                 plt.title('Dim.' + str(jj + 1))
@@ -116,6 +134,7 @@ def cp_to_tensor(factors):
 
 def normalize_cp(factors, dosort=1, normdim=None):
     # TODO implement the normalization of the variance ?
+
     normed_factors = [factori for factori in factors]
     norms = 1
 
@@ -232,25 +251,24 @@ def get_similarity(models, ref_model=0, used_dims=None):
     return smlty, perm_final, sign_final
 
 
-def reorder_models(models, ref_model=0, smlty=None, perm_final=None, sign_final=None):
+def reorder_models(models, ref_model=0, permutations=None, sign_shift=None):
     """Align CP models based on a similarity metric"""
 
-    # TODO RENAME SMLT PERM AND SIGN and remove sm
-    if (perm_final is None) or (sign_final is None):
+    if (permutations is None) or (sign_shift is None):
         print('No ordering provided. Ordering with default values')
-        smlty, perm_final, sign_final = get_similarity(models, ref_model=ref_model)
+        smlty, permutations, sign_shift = get_similarity(models, ref_model=ref_model)
 
-    num_models = len(perm_final)
-    assert num_models == len(perm_final)
-    assert num_models == len(sign_final)
+    num_models = len(permutations)
+    assert num_models == len(permutations)
+    assert num_models == len(sign_shift)
 
     models_ordered = []
 
     for (i, cur_model) in enumerate(models):
 
         cur_model, _ = normalize_cp(cur_model, dosort=1, normdim=3)
-        cur_perm = perm_final[i]
-        cur_sign = sign_final[i]
+        cur_perm = permutations[i]
+        cur_sign = sign_shift[i]
 
         new_model = []
 
@@ -258,7 +276,6 @@ def reorder_models(models, ref_model=0, smlty=None, perm_final=None, sign_final=
             new_model.append(cur_model[dim_ext][:, cur_perm] * np.expand_dims(cur_sign[:, dim_ext], axis=0))
 
         models_ordered.append(new_model)
-
 
     return models_ordered
 

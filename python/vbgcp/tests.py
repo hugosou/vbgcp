@@ -128,9 +128,9 @@ def mat_to_vbgcp(mat):
 
 
 import scipy.io
-from components import *
-from utils import *
-from vb_gcp import VBGCPTensor
+from vbgcp.components import *
+from vbgcp.utils import *
+from vbgcp.vb_gcp import VBGCPTensor
 
 # Raw matlab structure
 mat = scipy.io.loadmat('/home/sou/Documents/PYTHON/tests_matlab/for_testing.mat')
@@ -143,12 +143,22 @@ vbgcp2, _, _ = mat_to_vbgcp(mat2)
 # Update Raw struture
 vbgcp.fit_params.ite_max = 100
 
-vbgcp.shape_param = 80.0 # THERE STILL IS AN ISSUE WITH SHAPE PARAM = int ?
-vbgcp.variational_inference(Xobs)
 
+#vbgcp.variational_inference(Xobs)
 
+#vbgcp._update_offset(Xobs)
 
+observed_tensor = Xobs
+#%%
 
+offset = mat['offset'][:,0,:,0,0]
+offset_fit = vbgcp.posteriors.offset_mean[:,0,:,0,0]
+
+plt.figure()
+for ii in np.arange(offset.shape[1]):
+    plt.subplot(offset.shape[1],1,ii+1)
+    plt.plot(offset[:,ii])
+    plt.plot(offset_fit[:, ii])
 
 
 

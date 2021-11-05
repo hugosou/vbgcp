@@ -137,6 +137,7 @@ class Mixin:
         Usum = np.sum(latent, axis=tuple(not_fit_offset_dim))
         Zsum = np.sum(Ztmp, axis=tuple(not_fit_offset_dim)) / (Usum + 1e-16)
 
+
         # Update offset mean and variance using prior mean and precision (compact form)
         offset_posterior_variance = 1 / (Usum + offset_prior_precision + 1e-16)
         offset_posterior_mean = offset_posterior_variance * (Usum * Zsum + offset_prior_precision * offset_prior_mean)

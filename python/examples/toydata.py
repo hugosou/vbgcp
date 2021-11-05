@@ -63,6 +63,7 @@ def build_toydaset(tshape=np.array([100, 70, 3, 4, 5]), add_offset=1, add_missin
     vtrue = np.random.rand(*(offset_dim*tshape + (1-offset_dim)))
     vtrue = 0.1*vtrue
     offset = add_offset*vtrue
+    Wtrue += offset
 
     # Observation model
     if model == 'gaussian':

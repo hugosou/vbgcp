@@ -1,8 +1,9 @@
 %% Save
 folder = '~/Documents/PYTHON/tests_matlab/';
 CP = true_params.CPtrue;
+offset = true_params.offset;
 
-save([folder, 'for_testing'],'Xobs', 'vi_param',  'vi_var_with_ard' ,'CP')
+save([folder, 'for_testing'],'Xobs', 'vi_param',  'vi_var_with_ard' ,'CP', 'offset')
 
 %%
 cd ~/Documents/MATLAB/tensor_decomp/
@@ -12,13 +13,12 @@ folder = '~/Documents/PYTHON/tests_matlab/';
 %load([folder, 'for_testing'])
 vi_param.sparse = 'false';
 vi_param.ite_max = 100;
-%vi_var_with_ard.shape
 
+vi_var_with_ard = vi_update_offset(vi_var_with_ard,vi_param,Xobs);
 
 
 %[vi_var0,vi_param0] = vi_init(Xobs, vi_param, vi_var0);
-vi_var_with_ard = tensor_variational_inference(Xobs,vi_param,vi_var_with_ard);
-
+%vi_var_with_ard = tensor_variational_inference(Xobs,vi_param,vi_var_with_ard);
 %plot_cp(vi_var_with_ard.CP_mean)
 
 save([folder, 'for_testing2'],'Xobs', 'vi_param',  'vi_var_with_ard','CP')

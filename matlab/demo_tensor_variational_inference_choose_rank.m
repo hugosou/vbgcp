@@ -37,7 +37,7 @@ R = 6;
 
 % Fit parameters
 vi_param = struct();
-vi_param.ite_max = 4000;
+vi_param.ite_max = 100;
 vi_param.observed_data = observed_data;
 vi_param.fit_offset_dim = add_offset*fit_offset_dim;
 vi_param.shared_precision_dim= 1*[0,1,1,1,1];
