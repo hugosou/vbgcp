@@ -2,7 +2,6 @@ function [models_reordered,variances_reordered] = reorder_cps(models,permt_tot,s
 % REORDER_CPS uses optimal permutations discovered with similarity measures
 % to reorder (and normalize) CP factors and variance if provided.
 
-
 if nargin <4
     reorder_variances = 0;
 else

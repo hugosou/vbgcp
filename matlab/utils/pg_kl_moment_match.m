@@ -27,8 +27,6 @@ elseif strcmp(str_option,'MM-G')
    
 end
     
-
-
 % KL Divergence
 KL = mm_kl(alpha1,alpha2,beta1,beta2);
 

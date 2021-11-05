@@ -1,4 +1,5 @@
 function vi_var = vi_update_precision_mode(vi_var,vi_param)
+% Update precision matrices with mode structure
 
 dimn   = vi_param.dim_neuron;
 groups = vi_param.neurons_groups;

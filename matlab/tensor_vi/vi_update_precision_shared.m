@@ -1,4 +1,5 @@
 function vi_var = vi_update_precision_shared(vi_var,vi_param)
+% Update precision matrices using ARD like techniques
 
 shared_dim = vi_param.shared_precision_dim;
 

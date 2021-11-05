@@ -2,22 +2,24 @@
 %       - Generate toydataset of rank R = 4 with missing Data and Offset
 %       - Illustrate ARD for tensor rank selection 
 %       - Plot Posteriors estimate
+restoredefaultpath
+cd /home/sou/Documents/vbgcp_public/matlab/
 addpath(genpath('./'))
-
-% For Reproduction purposes
-rng(1)
 
 %% Generate Dataset
 % Negative binomial model with missing observation and an offset
-model_true  = 'negative_binomial';
 add_offset  = 1; 
 add_missing = 1;
+model_true  = 'negative_binomial';
 
 % Observed Tensor Dimensions
 Xdims = [100,70,3,4,5];
 
 % True Rank
 Rtrue = 4;
+
+% For Reproduction purposes
+rng(1)
 
 % Generate Toy Dataset
 [Xobs,observed_data,true_params] = ...
@@ -34,12 +36,13 @@ plot_cp(true_params.CPtrue)
 
 %% Variational Inference
 clc
+R = 6;
 
 % Fit parameters
 vi_param = struct();
 
 % Test rank
-vi_param.R = 6;
+vi_param.R = R;
 
 % Variational EM steps
 vi_param.ite_max = 4000;
@@ -54,6 +57,8 @@ vi_param.fit_offset_dim = add_offset*fit_offset_dim;
 vi_param.dim_neuron= 1;
 vi_param.neurons_groups = neurons_groups;
 vi_param.shared_precision_dim= [0,1,1,1,1];
+vi_param.update_CP_dim = ones(1,ndims(Xobs));
+vi_param.shape_update = 'MM-G';
 
 % Increase speed by exploiting missing data structure 
 if add_missing

@@ -1,8 +1,33 @@
 function vi_var = tensor_variational_inference(Xobs,vi_param,vi_var)
 % Bayesian tensor CP decomposition of count data 
-% Inference via Variational Inference and Polya-Gamma  augmentation 
-% @Hugo.S
-% Inference of the shape parameter is not implemented yet..
+% Inference via approx. Variational Inference and Polya-Gamma  augmentation. 
+%
+% PARAMS: - Xobs: count tensor
+%
+%         - vi_param: structure containing fitting parameters 
+%           - R: tensor rank
+%           - ite_max: variational EM iterations
+%           - (optional) fit_offset_dim: boolean, dimension allong which
+%           offset varies
+%           - (optional) observed_data: boolean, missing/observed entries
+%           - (optional) dim_neuron: int, shared precision for a given mode
+%           - (optional) neurons_groups: boolean, groups for shared
+%           precision
+%           - (optional) shared_precision_dim: boolean, shared precision
+%           across given modes
+%           - (optional) sparse: block structure for missing data
+%           - (optional) disppct: display loss
+%
+%         - vi_var: structure containing model params. priors and posteriors
+%           - CP mean (cell 1xD containing Di x R matrices): prior and post.
+%           - CP precision/variance (cell 1xD containing Di x (RxR) matrices): prior and post.
+%           - tensor_mean 1st  moment of reconstructed tensor from CP_mean
+%           - tensor2_mean 2nd moment of reconstructed tensor from CP_mean
+%           - Offset mean/variance priors and posteriors
+%           - Gamma priors for precisions (prior_a, prior_b shared or mode)
+%           - FE approximate free energy (ELBO)
+%
+% See Soulat et al. (2021)
 
 if not(isfield(vi_param,'ite_max')); error('ite_max required field'); else; ite_max = vi_param.ite_max; end
 if not(isfield(vi_param,'shape_update')); vi_param.shape_update = 'MM-G'; end
@@ -29,7 +54,6 @@ shape_tot = zeros(ite_max,1);
 ref = vi_var.CP_mean;
 precn = max(1+floor(log10(ite_max)),1);
 logger = ['Iterations: %.', num2str(precn),'d/%d %s%.10g %s%.5g \n'];
-
 
 for ite=1:ite_max
     
@@ -71,10 +95,8 @@ end
 
 vi_var.loss_tot  = loss_tot; 
 vi_var.shape_tot = shape_tot;
-    
 
 end
-
 
 function [loss,loss_str,ref] = get_loss(vi_var,vi_param,ref)
 if contains(vi_param.shape_update,'MM') || strcmp(vi_param.shape_update,'numerical')

@@ -7,7 +7,6 @@ function BBn = KhatriRaoProd_var(CP_mean,CP_variance,dimn)
 % OUPUTS : BBn = AA_D * ... * AA_n+1 * AA_n-1 * ... * AA_1
 %          AAn(i,:) = Vec(m_in'm_in + Sigma_in)  ~ 1 x RR
 
-
 % Build AAT
 factors = get_AAt(CP_mean,CP_variance);
 

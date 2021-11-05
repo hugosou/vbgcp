@@ -1,7 +1,7 @@
 function vi_var = vi_update_linear_response(Xobs,vi_var,vi_param)
 % Use Linear Reponse Method for more accurate covariance estimate of GCP
 % decomposition
-% Implemented from Giordano et al. (2015).
+% Adapted from Giordano et al. (2015).
 
 % Dimensions of the problem
 Xdims = size(Xobs);

@@ -1,4 +1,6 @@
 function models_squeezed = squeeze_model(models, observed_data, dimoi, an)
+% Squeeze model according to observed_data block structure
+
 assert(sum(dimoi)==2,'Incorrect Dimensions')
 
 dimdisc = find(dimoi);
@@ -9,7 +11,6 @@ models_squeezed = cell(size(models));
 if nargin<4
     an = 3;
 end
-
 
 % Keep ponly the relevant dimensions for observed data
 if ndims(observed_data)>2

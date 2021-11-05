@@ -136,7 +136,6 @@ end
 
 end
 
-
 function CP_variance = init_CP_variance(Xdims,R)
     CP_variance  = cellfun(@(Z) ...
         repmat(reshape(eye(R),[1,R*R]),Z,1) , num2cell(Xdims),'UniformOutput', false);
@@ -162,7 +161,6 @@ offsets_tmp = 0*rand(fit_offset_dim.*Xdims+not(fit_offset_dim));
 offsets     = repmat(offsets_tmp, fit_offset_dim + not(fit_offset_dim).*Xdims);
  
 end
-
 
 function vi_var = store_observed(vi_var,vi_param,Xobs)
 % Store observed data for efficient sparse data CP update
@@ -196,7 +194,6 @@ for dimn = 1:length(Xdims)
         observed_data_ni{dimn}{dimi} = find(On(dimi,:));
     end
 end
-
 
 % Try to find a block structure (can be improved)
 observed_data_block = cell(1,length(observed_data_ni));

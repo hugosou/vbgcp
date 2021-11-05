@@ -46,7 +46,6 @@ Ktrue(:,1) = linspace(0,1,D5);
 Ktrue(:,2) = linspace(1,0,D5);
 Ktrue(:,3) = linspace(0,1,D5).^2;
 Ktrue(:,4) = ones(1,D5);
-%Ktrue = randn(D5,Rtrue); % To be removed ?
 
 % Low dim Tensor
 CPtrue = cell(1,5);
@@ -60,7 +59,7 @@ if strcmp(model_true,'poisson')
     CPtrue{1,5} = 0.5*Ktrue;
 end
 
-% Reconstruc Dynamics
+% Reconstruct Dynamics
 Wtrue = tensor_reconstruct(CPtrue);
 
 % Add the offset allong fit_offset_dim dimensions
