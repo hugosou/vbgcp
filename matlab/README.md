@@ -38,7 +38,7 @@ Brett W. Bader, Tamara G. Kolda and others. MATLAB Tensor Toolbox Version 2.6, A
 To train the model(s) on the toydataset described in the paper, run:
 
 ```
-demo_tensor_variational_inference.m
+demo_vbgcp.m
 ```
 PG approximation Figures can be generated with: 
 

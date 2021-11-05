@@ -27,7 +27,7 @@ Variational inference is implemented using a Pólya-Gamma augmentation scheme.
 To train the model(s) on the toydataset described in the paper open:
 
 ```
-matlab/demo_tensor_variational_inference.m
+matlab/demo_vbgcp.m
 ```
 Or:
 ```
