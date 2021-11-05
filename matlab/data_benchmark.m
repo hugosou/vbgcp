@@ -1,4 +1,4 @@
-
+%% Benchmark VB-GCP against (G)CP on a spiking dataset (not provided)
 % Add master folders
 addpath('./data_analysis/')
 addpath('./tensor_gcp/')
@@ -8,15 +8,8 @@ addpath('./utils/')
 addpath(genpath('../tensor-demo-master/matlab/'))
 addpath(genpath('../L-BFGS-B-C-master/'))
 
-
-data_folder = '/nfs/gatsbystor/hugos/data_sepi_all/';
-resu_folder = '/nfs/gatsbystor/hugos/';
-
-%data_folder = '~/Documents/Data/data_sepi_all/'; 
-%resu_folder = '~/Documents/Data/data_sepi_all/';
-
-%data_folder = './../NEURIPS/';
-%resu_folder = './../NEURIPS/';
+data_folder = './../NEURIPS/';
+resu_folder = './../NEURIPS/';
 
 % Dataset Parameters
 flip_back_data = 0;
@@ -46,18 +39,17 @@ end
 
 experimental_parameters = data_sepi;
 
-%%
-
 observed_tensor = experimental_parameters.observed_tensor;
 observed_dims = size(observed_tensor);
 k_trials = size(observed_tensor,5);
-
 observed_data = 1;
+
+%%
 
 % Sizes of Train/Tests sets, Number of LNO
 k_test = k_trials/2;         % Size of the test set
 k_max  = 24;                 % Number of cross validation folders
-k_max  = 72; 
+%k_max  = 72; 
 
 % Get Test/Train Folders and random neuron index
 % Get outer folder ids
@@ -67,6 +59,8 @@ ids = 1:k_trials;
 k_folder = size(train_folder,1);
 
 rank_tot = [1,2,4,6,8,10,12,14];
+rank_tot = 1:14;
+shap_tot = linspace(0.5,100,50);
 k_rank = length(rank_tot);
 
 
@@ -98,8 +92,16 @@ vi_var0.prior_b_shared = 1;
 
 % 1 -> VI
 % 2 -> CP
-% 3 -> GCP
-model_str = {'VI','CP','GCP'};
+% 3 -> GCP Poisson
+% 4 -> GCP NB(r1)
+% ...
+% N -> GCP NB(rN)
+Nmodel = 3+length(shap_tot);
+model_str = {'VI','CP','GCP_Poiss'};
+for nshape = 1:length(shap_tot)
+    model_str{3+nshape} = ['GVP_NB(',num2str(shap_tot(nshape),2) ,')'];
+end
+
 
 % Store CP models
 factors_tot = cell(1,k_folder);
@@ -121,13 +123,13 @@ parfor folder_id = 1:k_folder
     Xobs_train = sum(sum(observed_tensor(:,:,:,:,cur_train_folders),4),5);
     Xobs_tests = sum(sum(observed_tensor(:,:,:,:,cur_tests_folders),4),5);
     
-    factors_folder = cell(3,k_rank);
+    factors_folder = cell(Nmodel,k_rank);
     varianc_folder = cell(1,k_rank);
     variabl_folder = cell(1,k_rank);
-    E_train_folder = cell(3,k_rank);
-    E_tests_folder = cell(3,k_rank);
-    D_train_folder = cell(3,k_rank);
-    D_tests_folder = cell(3,k_rank);
+    E_train_folder = cell(Nmodel,k_rank);
+    E_tests_folder = cell(Nmodel,k_rank);
+    D_train_folder = cell(Nmodel,k_rank);
+    D_tests_folder = cell(Nmodel,k_rank);
     
     
     for R_id = 1:k_rank
@@ -176,8 +178,7 @@ parfor folder_id = 1:k_folder
         Xhat_GCP = exp(tensor_reconstruct(GCP_factors_rk));
         % Store factors
         factors_folder{3,R_id} = GCP_factors_rk;
-        
-        
+          
         %% Basline SS and DE0
         Xhat_0 = mean(Xobs_train(:)).*ones(size(Xobs_train));
         E0_train_tot{1,folder_id} = sum((Xhat_0(:)-Xobs_train(:)).^2);
@@ -185,33 +186,49 @@ parfor folder_id = 1:k_folder
         
         D0_train_tot{1,folder_id} = deviance_poisson(Xobs_train, Xhat_0);
         D0_tests_tot{1,folder_id} = deviance_poisson(Xobs_tests, Xhat_0);
-        
-        
+          
         % VI SS and DE
         E_train_folder{1,R_id} = sum((Xhat_VI(:)-Xobs_train(:)).^2);
         E_tests_folder{1,R_id} = sum((Xhat_VI(:)-Xobs_tests(:)).^2);
         D_train_folder{1,R_id}  = deviance_poisson(Xobs_train, Xhat_VI);
         D_tests_folder{1,R_id}  = deviance_poisson(Xobs_tests, Xhat_VI);
         
-        
         % CP SS and DE
         E_train_folder{2,R_id} = sum((Xhat_CP(:)-Xobs_train(:)).^2);
         E_tests_folder{2,R_id} = sum((Xhat_CP(:)-Xobs_tests(:)).^2);
         D_train_folder{2,R_id}  = deviance_poisson(Xobs_train, Xhat_CP_pos);
         D_tests_folder{2,R_id}  = deviance_poisson(Xobs_tests, Xhat_CP_pos);
-        
-        
+           
         % GCP SS and DE
         E_train_folder{3,R_id} = sum((Xhat_GCP(:)-Xobs_train(:)).^2);
         E_tests_folder{3,R_id} = sum((Xhat_GCP(:)-Xobs_tests(:)).^2);
         D_train_folder{3,R_id}  = deviance_poisson(Xobs_train, Xhat_GCP);
         D_tests_folder{3,R_id}  = deviance_poisson(Xobs_tests, Xhat_GCP);
-       
         
         
-        
- 
-        
+        %% Fit GCP-NB decomposition
+        for nshape = 1:length(shap_tot)
+            shape_nb_cur = shap_tot(nshape);
+            GCPNB_factors_rk = gcp_opt(tensor(Xobs_train),R, 'func',@(x,m) (shape_nb_cur+x).*log(1+exp(m))-x.*m , 'grad', @(x,m) (shape_nb_cur+x)./(1+exp(-m))-x,'lower',-Inf,'maxiters',ite_max,'printitn',ite_max);
+            % Grasp
+            GCPNB_factors_tmp = GCPNB_factors_rk.U(:)';
+            GCPNB_lambdas_tmp = GCPNB_factors_rk.lambda';
+            GCPNB_factors_rk = GCPNB_factors_tmp;
+            GCPNB_factors_rk{1,4} = GCPNB_lambdas_tmp;
+            GCPNB_factors_rk = absorb_normalizer(GCPNB_factors_rk,3);
+            % Reconstruct
+            Xhat_GCPNB = shape_nb_cur*exp(tensor_reconstruct(GCPNB_factors_rk));
+            % Store factors
+            factors_folder{3+nshape,R_id} = GCPNB_factors_rk;
+            
+            
+            % GCP SS and DE
+            E_train_folder{3+nshape,R_id} = sum((Xhat_GCPNB(:)-Xobs_train(:)).^2);
+            E_tests_folder{3+nshape,R_id} = sum((Xhat_GCPNB(:)-Xobs_tests(:)).^2);
+            D_train_folder{3+nshape,R_id} = deviance_poisson(Xobs_train, Xhat_GCPNB);
+            D_tests_folder{3+nshape,R_id} = deviance_poisson(Xobs_tests, Xhat_GCPNB);
+            
+        end
         
     end
     
@@ -223,15 +240,16 @@ parfor folder_id = 1:k_folder
     D_train_tot{1,folder_id} = D_train_folder;
     D_tests_tot{1,folder_id} = D_tests_folder;
     
-    
 end
 
-filename = [resu_folder,'benchmark_vi_cp_gcp_data_sepi_' ,datestr(now,'yyyy_mm_dd_HH_MM')];
+%filename = [resu_folder,'benchmark_vi_cp_gcp_data_sepi_' ,datestr(now,'yyyy_mm_dd_HH_MM')];
+%save(filename,'factors_tot','varianc_tot','variabl_tot',...
+%    'E_train_tot','E_tests_tot','D_train_tot','D_tests_tot',...
+%    'E0_train_tot','E0_tests_tot','D0_train_tot','D0_tests_tot',...
+%    'experimental_parameters','vi_param0', '-v7.3')
+
+filename = [resu_folder,'WITH_GCPNB_benchmark_vi_cp_gcp_data_sepi_' ,datestr(now,'yyyy_mm_dd_HH_MM')];
 save(filename,'factors_tot','varianc_tot','variabl_tot',...
     'E_train_tot','E_tests_tot','D_train_tot','D_tests_tot',...
     'E0_train_tot','E0_tests_tot','D0_train_tot','D0_tests_tot',...
-    'experimental_parameters','vi_param0', '-v7.3')
-
-
-
-
+    'experimental_parameters','vi_param0','shap_tot', '-v7.3')

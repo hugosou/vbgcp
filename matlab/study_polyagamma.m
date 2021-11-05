@@ -327,6 +327,22 @@ distance_gridsearch_pg_n = reshape(distance_gridsearch_pg_n, [num_param_c,num_pa
 avg_spike_count = floor(linspace(1,20,6));
 xi_n = fano_factor.*(1+avg_spike_count)./(fano_factor-1);
 
+error_bound = zeros(length(avg_spike_count),length(ctest_char));
+for sc = 1:length(avg_spike_count)
+    b0 = avg_spike_count(sc)./(fano_factor-1);
+
+    [~,locmin] = min(abs(btest_char'-b0)');
+    
+    for tt = 1:length(ctest_char)
+        if locmin(tt) < length(btest_char)
+            error_bound(sc,tt) = distance_gridsearch_pg_g(locmin(tt),tt);
+        else
+            error_bound(sc,tt) = NaN;
+        end
+    end
+
+end
+
 %% Plots
 climits = log([0.00015 0.005]);
 climits = [-9,-5];
@@ -440,11 +456,11 @@ colorbar
 set(gcf,'position', [5 1455 1907 273])
 legend(cellstr(num2str(avg_spike_count')), 'location', 'southeast')
 
-%% Load a pre-built data base of PG(b,c) samples (see end)
+%% Load a pre-built data base of PG(b,c) samples (see below to build pg_samples)
 
 clear
-load('./../pg_tables/pg_psd_tot.mat')
-load('./../pg_tables/pg_samples.mat')
+load('./../pg_psd_tot.mat')
+load('./../pg_samples.mat')
 
 %% Compare: Analytic Estimates Vs. (Samples & Moment Matcher)
 % Moment matcher: - Generalized Gamma : Fails
@@ -923,7 +939,7 @@ moments = [m1,m2,m3];
 end
 
 
-%% Build PG(b,0) samples
+%% Build PG(b,0) samples (uncomment to build pg_samples)
 % bmin = 0.01;
 % bmax = 1;
 % Nb = 2000;

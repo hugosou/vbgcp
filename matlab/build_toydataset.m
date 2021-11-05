@@ -1,4 +1,5 @@
 function [Xobs,observed_data,true_params,Xtrue] = build_toydataset(model_true,Rtrue,Xdims,add_offset,add_missing)
+% Generate a 5D count tensor of rank R = 4
 
 % Simulated parameters
 true_params = struct();

@@ -1,4 +1,4 @@
-%% Process benchmark analysis 
+%% Analyse Benchmark Results: VB-GCP against (G)CP on a spiking dataset (not provided)
 %load('./../NEURIPS/neurips_benchmark_vi_cp_gcp_data_sepi.mat')
 load('./../NEURIPS/neurips_benchmark_vi_cp_gcp_data_sepi_with_gcpnb_baseline.mat')
 addpath(genpath('./'))
@@ -15,7 +15,6 @@ E0_train_tot_f = E0_train_tot(1:Fmax);
 D0_train_tot_f = D0_train_tot(1:Fmax);
 E0_tests_tot_f = E0_tests_tot(1:Fmax);
 D0_tests_tot_f = D0_tests_tot(1:Fmax);
-
 
 fators_tot_f_ordered = cell(...
     size(fators_tot_f{1},1),...
@@ -41,7 +40,6 @@ D_tests_tot_ordered = zeros(...
     size(fators_tot_f{1},1),...
     size(fators_tot_f{1},2),...
     Fmax);
-
 
 for folder_id = 1:Fmax
     
@@ -202,8 +200,6 @@ box on; xlabel('R')
 set(gcf,'position', [593         369        1030         257])
 
 
-
-
 %% Only for NB Baseline
 % //////////////////////////////////////////////////////////////////// 
 % NB baseline added and selected with DE, Sim or Training Likelihood//
@@ -258,7 +254,6 @@ for folder_id = 1:k_folder
     end
     
 end
-
 
 logL_nb_avg_train = mean(logL_nb_tot_train,3);
 logL_nb_avg_tests = mean(logL_nb_tot_tests,3);
@@ -376,105 +371,6 @@ end
 title('DE test')
 legend(model_str)
 box on; xlabel('R')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-% 
-% 
-% for rr = 1:size(avg_similarities,2)
-%    DE_avg_GCPNB_dev(rr) = mean(DE_tests_tot(3+NB_shape_dev(rr),rr,:),3);
-%    DE_avg_GCPNB_sim(rr) = mean(DE_tests_tot(3+NB_shape_sim(rr),rr,:),3);
-%    DE_avg_GCPNB_lik(rr) = mean(DE_tests_tot(3+NB_shape_lik(rr),rr,:),3);
-%    DE_std_GCPNB_dev(rr) = std(DE_tests_tot(3+NB_shape_dev(rr),rr,:),[],3);
-%    DE_std_GCPNB_sim(rr) = std(DE_tests_tot(3+NB_shape_sim(rr),rr,:),[],3);
-%    DE_std_GCPNB_lik(rr) = std(DE_tests_tot(3+NB_shape_lik(rr),rr,:),[],3);
-%    
-%    VE_avg_GCPNB_dev(rr) = mean(VE_tests_tot(3+NB_shape_dev(rr),rr,:),3);
-%    VE_avg_GCPNB_sim(rr) = mean(VE_tests_tot(3+NB_shape_sim(rr),rr,:),3);
-%    VE_avg_GCPNB_lik(rr) = mean(VE_tests_tot(3+NB_shape_lik(rr),rr,:),3);
-%    VE_std_GCPNB_dev(rr) = std(VE_tests_tot(3+NB_shape_dev(rr),rr,:),[],3);
-%    VE_std_GCPNB_sim(rr) = std(VE_tests_tot(3+NB_shape_sim(rr),rr,:),[],3);
-%    VE_std_GCPNB_lik(rr) = std(VE_tests_tot(3+NB_shape_lik(rr),rr,:),[],3);
-%     
-%    sim_avg_GCPNB_dev(rr) = avg_similarities(3+NB_shape_dev(rr),rr);
-%    sim_std_GCPNB_dev(rr) = std_similarities(3+NB_shape_dev(rr),rr);
-%    sim_avg_GCPNB_sim(rr) = avg_similarities(3+NB_shape_sim(rr),rr);
-%    sim_std_GCPNB_sim(rr) = std_similarities(3+NB_shape_sim(rr),rr);
-%    sim_avg_GCPNB_lik(rr) = avg_similarities(3+NB_shape_lik(rr),rr);
-%    sim_std_GCPNB_lik(rr) = std_similarities(3+NB_shape_lik(rr),rr);
-%    
-%     
-% end
-% 
-% %%
-% 
-% 
-% figure; 
-% subplot(1,3,1);hold on
-% % VE VB-GCP, CP, GCP Poisson
-% for ll = 1:3
-%     errorbar(rank_test,mean(VE_tests_tot(ll,:,:),3),std(VE_tests_tot(ll,:,:),[],3),...
-%         'linewidth',2,'color', colors_tot(ll,:))
-% end
-% % VE GCP NB
-% errorbar(rank_test,VE_avg_GCPNB_dev,VE_std_GCPNB_dev,...
-%     'linewidth',2,'color', [0,0,0])
-% errorbar(rank_test,VE_avg_GCPNB_sim,VE_std_GCPNB_sim,...
-%     'linewidth',2,'color', [0.5,0.5,0.5])
-% errorbar(rank_test,VE_avg_GCPNB_lik,VE_std_GCPNB_lik,...
-%     'linewidth',2,'color', 'm')
-% title('Test VE')
-% legend({'VB-GCP','CP','GCP Poissson','GCP NB dev','GCP NB sim'}, 'location', 'southeast')
-% box on; xlabel('R')
-% 
-% subplot(1,3,2);hold on
-% % DE VB-GCP, CP, GCP Poisson
-% for ll = 1:3
-%     errorbar(rank_test,mean(DE_tests_tot(ll,:,:),3),std(DE_tests_tot(ll,:,:),[],3),...
-%         'linewidth',2,'color', colors_tot(ll,:))
-% end
-% % DE GCP NB
-% errorbar(rank_test,DE_avg_GCPNB_dev,DE_std_GCPNB_dev,...
-%     'linewidth',2,'color', [0,0,0])
-% errorbar(rank_test,DE_avg_GCPNB_sim,DE_std_GCPNB_sim,...
-%     'linewidth',2,'color', [0.5,0.5,0.5])
-% errorbar(rank_test,DE_avg_GCPNB_lik,DE_std_GCPNB_lik,...
-%     'linewidth',2,'color', 'm')
-% title('Test DE')
-% box on; xlabel('R')
-% 
-% subplot(1,3,3);hold on
-% % Similarities VB-GCP, CP, GCP Poisson
-% for ll = 1:3
-%     errorbar(rank_test,avg_similarities(ll,:),std_similarities(ll,:),...
-%         'linewidth',2,'color', colors_tot(ll,:))
-% end
-% % Similarities VE
-% errorbar(rank_test,sim_avg_GCPNB_dev,sim_std_GCPNB_dev,...
-%     'linewidth',2,'color', [0,0,0])
-% errorbar(rank_test,sim_avg_GCPNB_sim,sim_std_GCPNB_sim,...
-%     'linewidth',2,'color', [0.5,0.5,0.5])
-% errorbar(rank_test,sim_avg_GCPNB_lik,sim_std_GCPNB_lik,...
-%     'linewidth',2,'color', 'm')
-% title('Similarities')
-% box on; xlabel('R')
-% 
-% set(gcf,'position', [593         369        1030         257])
-
 
 
 function xf = nb_normalizer(x,shape)

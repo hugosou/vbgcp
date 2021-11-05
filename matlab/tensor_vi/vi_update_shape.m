@@ -18,7 +18,7 @@ if strcmp(shape_update,'MM-G')
     % Moment Match a Gamma distributions from which we estimate KL
     
     % Restrick Dataset for fast shape update
-    Nlimit = 25000;
+    %Nlimit = 25000;
     Nlimit = length(observed_id);
     observed_id = observed_id(randperm(length(observed_id),Nlimit));
     

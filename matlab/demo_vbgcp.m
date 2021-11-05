@@ -1,11 +1,17 @@
 %% Probabilistic Tensor Decomposition of Count Data
+%       - Generate toydataset of rank R = 4 with missing Data and Offset
+%       - Illustrate ARD for tensor rank selection 
+%       - Plot Posteriors estimate
 addpath(genpath('./'))
 
+% For Reproduction purposes
+rng(1)
+
 %% Generate Dataset
-% Model
-add_offset  = 1;
-add_missing = 1;
+% Negative binomial model with missing observation and an offset
 model_true  = 'negative_binomial';
+add_offset  = 1; 
+add_missing = 1;
 
 % Observed Tensor Dimensions
 Xdims = [100,70,3,4,5];
@@ -13,10 +19,7 @@ Xdims = [100,70,3,4,5];
 % True Rank
 Rtrue = 4;
 
-% For Reproduction purposes
-rng(1)
-
-% Simulate Toy Dataset
+% Generate Toy Dataset
 [Xobs,observed_data,true_params] = ...
     build_toydataset(model_true,Rtrue,Xdims,add_offset,add_missing);
 
@@ -26,25 +29,33 @@ for parami = 1:length(param_names)
     eval([param_names{parami} '=true_params.' param_names{parami},';']);
 end
 
-% Plot True dataset 
+% Plot True Factors 
 plot_cp(true_params.CPtrue)
 
-% Variational Inference
+%% Variational Inference
 clc
-R = 6;
 
 % Fit parameters
 vi_param = struct();
+
+% Test rank
+vi_param.R = 6;
+
+% Variational EM steps
 vi_param.ite_max = 4000;
+
+% Observed/Missing data
 vi_param.observed_data = observed_data;
+
+% Constrained Offset dimensions
 vi_param.fit_offset_dim = add_offset*fit_offset_dim;
-vi_param.shared_precision_dim= 1*[0,1,1,1,1];
+
+% ARD like parameters
 vi_param.dim_neuron= 1;
 vi_param.neurons_groups = neurons_groups;
-vi_param.update_CP_dim = ones(1,ndims(Xobs));
-vi_param.shape_update = 'MM-G';
-vi_param.R = R;
+vi_param.shared_precision_dim= [0,1,1,1,1];
 
+% Increase speed by exploiting missing data structure 
 if add_missing
     vi_param.sparse = 'block';
 else
@@ -56,23 +67,23 @@ vi_var0 = struct();
 vi_var0.shape = 120;
 vi_param.disppct = 0.1;
 
-% With ARD
+% Fit With ARD
 [vi_var0,vi_param0] = vi_init(Xobs, vi_param, vi_var0);
 vi_var_with_ard = tensor_variational_inference(Xobs,vi_param,vi_var0);
 
-% Without ARD
+% Fit Without ARD
 vi_param_no_ard = vi_param;
 vi_param_no_ard.shared_precision_dim= 0*[0,1,1,1,1];
 vi_param_no_ard.dim_neuron= 0;
 vi_var_no_ard = tensor_variational_inference(Xobs,vi_param_no_ard,vi_var0);
 
+%% Choose Method to plot
+vi_var = vi_var_with_ard;
+%vi_var = vi_var_no_ard;
 
-%% Plots
 
-% Choose method to be plotted
-vi_var= vi_var_with_ard;
+%% Plot Fit summary
 
-% Fit summary
 figure
 subplot(1,2,1); hold on
 plot(1:vi_param.ite_max, shape*ones(vi_param.ite_max,1), 'color','m', 'linewidth',2,'linestyle','--')
@@ -85,7 +96,10 @@ plot(1:vi_param.ite_max, vi_var_with_ard.loss_tot, 'color','k', 'linewidth',2)
 box on; xlabel('Iteration'); title('Approximate FE')
 set(gcf,'position',[1921         340         635         219])
 
+%% Plot Fitted Factors
+
 % Compare fit and simulation
+R = vi_param.R;
 if R > Rtrue
     CPt = augment_cp(CPtrue,R-Rtrue);
 else
@@ -118,8 +132,6 @@ end
 [smlty_tot_noref,~,permt_tot,~,sig_tot] = ...
     get_similarity_tot(models,ones(1,ndims(Xobs)),1);
 
-
-
 % Use it to reorder factors
 [models,variances] = ...
     reorder_cps(models,permt_tot,sig_tot,variances);
@@ -146,68 +158,57 @@ disp(['similarities: ', num2str(smlty_tot_noref,2)])
 set(gcf,'position',[1921           1         633         961])
 
 
-%% Pot Fit Offset
-offset_fit = squeeze(vi_var.offset_mean(:,1,1,:,1));
-offset_tru = squeeze(true_params.offset(:,1,1,:,1));
+%% Plot Fitted Offset 
+
+offset_true = squeeze(true_params.offset(:,1,1,:,1));
+offset_fit_mean = squeeze(vi_var.offset_mean(:,1,1,:,1));
+offset_fit_vari = squeeze(vi_var.offset_variance(:,1,1,:,1));
 
 figure;
-for ll = 1:size(offset_fit,2)
-subplot(size(offset_fit,2),1,ll); hold on
-    plot(offset_fit(:,ll))
-    plot(offset_tru(:,ll))
+for ll = 1:size(offset_fit_mean,2)
+    
+    offset_true_cur = offset_true(:,ll);
+    offset_fit_mean_cur = offset_fit_mean(:,ll);
+    offset_fit_variance_cur = offset_fit_vari(:,ll);
+    
+    x_cur = 1:length(offset_true_cur);
+    
+    up = offset_fit_mean_cur + 1*sqrt(abs(offset_fit_variance_cur));
+    lo = offset_fit_mean_cur - 1*sqrt(abs(offset_fit_variance_cur));
+    
+    subplot(size(offset_fit_mean,2),1,ll); hold on
+    
+    % Patch fit std intervals
+    patch([x_cur(:); flipud(x_cur(:))]', [up(:); flipud(lo(:))]',...
+        'k', 'FaceAlpha',0.2,'EdgeAlpha',0)
+    
+    % Plot fit
+    plot(x_cur, offset_fit_mean_cur, 'k', 'linewidth',1.3)
+    
+    % Plot True
+    plot(x_cur, offset_true_cur, 'm', 'linewidth',1.3)
+    
+    if ll ==1
+        title('Fit Offset')
+    elseif ll == size(offset_fit_mean,2)
+        xlabel('Neuron Dim')
+    end
+    
+    ylabel(['Session. ', num2str(ll)])
+    box on; axis tight;
+    
 end
 
-figure; imagesc(squeeze(observed_data(:,1,1,:,1)))
+%% Plot Missing data structure
+figure; 
+imagesc(squeeze(observed_data(:,1,1,:,1)))
+xlabel('Neuron Dim')
+ylabel('Session Dim')
 colormap('gray');
 
 
-%%
-function vi_var = perturb_cp(vi_var, amp)
 
-if nargin<2
-    amp = 1;
-end
-
-% Get the amplitude of each CP-factors
-[CP_normed, ~] = normalize_cp_std(vi_var.CP_mean,vi_var.CP_variance,0);
-
-% Get CP = 0
-CP_null = find(abs(CP_normed{end})<1e-12 );
-CP_full = find(abs(CP_normed{end})>1e-12 );
-
-% Get smallest CP
-[~,locmin] = min(CP_normed{end}(CP_full));
-CPmin = CP_full(locmin);
-
-% Perturb null CP
-CP_mean = vi_var.CP_mean;
-CP_variance = vi_var.CP_variance;
-
-%R = size(CP_mean{1},2);
-
-for dimn = 1:size(CP_mean,2)
-    % Perturbation amplitude
-    %perturb_amp = amp*mean(abs(CP_mean{1,dimn}(:,CPmin)));
-    %varianc_amp = amp*mean(vi_var.CP_variance{1,dimn}(:,CPmin+R*(CPmin-1)));
-    
-    for rr = CP_null
-        
-        
-        %CP_mean{1,dimn}(:,rr) = perturb_amp*randn(size(CP_mean{1,dimn},1),1);
-        %CP_variance{1,dimn}(:,rr+R*(rr-1)) = varianc_amp*abs(randn(size(CP_mean{1,dimn},1),1));
-        
-        permute_factor = randperm(size(CP_mean{1,dimn},1));
-        CP_mean{1,dimn}(:,rr) = amp*CP_mean{1,dimn}(permute_factor,CPmin);
-        CP_variance{1,dimn}(:,rr) = amp^2*CP_variance{1,dimn}(permute_factor,CPmin);
-  
-    end
-end
-
-% Store
-vi_var.CP_mean = CP_mean;
-vi_var.CP_variance = CP_variance;
-
-end
+%% Helpers
 
 function CPa = augment_cp(CP,r)
 % Add extra Components to CP for similarity comparisons
@@ -233,23 +234,4 @@ end
 
 
 
-function offsets = init_offsets(Xdims, fit_offset_dim)
-% Init Offset
 
-%offsets_tmp = 0.01*randn(fit_offset_dim.*Xdims+not(fit_offset_dim));
-offsets_tmp = 0*rand(fit_offset_dim.*Xdims+not(fit_offset_dim));
-offsets_tmp = randn(fit_offset_dim.*Xdims+not(fit_offset_dim));
-offsets     = repmat(offsets_tmp, fit_offset_dim + not(fit_offset_dim).*Xdims);
-
-end
-
-
-%% Linear Response correction
-%disp('Linear Response correction...'); tic;
-%vi_var_up = vi_update_linear_response(Xobs,vi_var,vi_param);
-%tmp = toc;
-%disp(['Linear Response correction... Done: ', num2str(tmp,2), 's'])
-%plot_cp(vi_var_up.CP_mean, vi_var_up.CP_variance)
-
-%plot_cp(vi_var_with_ard.CP_mean, vi_var_with_ard.CP_variance)
-%plot_cp(vi_var_no_ard.CP_mean, vi_var_no_ard.CP_variance)
