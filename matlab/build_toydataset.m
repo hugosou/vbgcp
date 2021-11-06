@@ -20,6 +20,7 @@ Ttrue(:,4) = abs(sin(linspace(0,2*pi,D2))).^2;
 
 % Neuron Loadings
 Ntrue = normrnd(0,2,D1,Rtrue);
+Ntrue = Ntrue.*(rand(size(Ntrue))>0);
 
 % Neuron Groups
 neurons_groups = zeros(D1,3);

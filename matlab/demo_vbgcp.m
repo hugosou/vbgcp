@@ -2,8 +2,6 @@
 %       - Generate toydataset of rank R = 4 with missing Data and Offset
 %       - Illustrate ARD for tensor rank selection 
 %       - Plot Posteriors estimate
-restoredefaultpath
-cd /home/sou/Documents/vbgcp_public/matlab/
 addpath(genpath('./'))
 
 %% Generate Dataset
@@ -86,18 +84,17 @@ vi_var_no_ard = tensor_variational_inference(Xobs,vi_param_no_ard,vi_var0);
 vi_var = vi_var_with_ard;
 %vi_var = vi_var_no_ard;
 
-
 %% Plot Fit summary
 
 figure
 subplot(1,2,1); hold on
 plot(1:vi_param.ite_max, shape*ones(vi_param.ite_max,1), 'color','m', 'linewidth',2,'linestyle','--')
-plot(1:vi_param.ite_max, vi_var_with_ard.shape_tot, 'color','k', 'linewidth',2)
+plot(1:vi_param.ite_max, vi_var.shape_tot, 'color','k', 'linewidth',2)
 box on; xlabel('Iteration'); title('Shape Parameter')
 %ylim([0, 200])
 
 subplot(1,2,2)
-plot(1:vi_param.ite_max, vi_var_with_ard.loss_tot, 'color','k', 'linewidth',2)
+plot(1:vi_param.ite_max, vi_var.loss_tot, 'color','k', 'linewidth',2)
 box on; xlabel('Iteration'); title('Approximate FE')
 set(gcf,'position',[1921         340         635         219])
 
@@ -238,5 +235,13 @@ end
 end
 
 
+function offsets = init_offsets(Xdims, fit_offset_dim)
+% Init Offset
 
+%offsets_tmp = 0.01*randn(fit_offset_dim.*Xdims+not(fit_offset_dim));
+offsets_tmp = 0*rand(fit_offset_dim.*Xdims+not(fit_offset_dim));
+offsets_tmp = randn(fit_offset_dim.*Xdims+not(fit_offset_dim));
+offsets     = repmat(offsets_tmp, fit_offset_dim + not(fit_offset_dim).*Xdims);
+
+end
 

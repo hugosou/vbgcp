@@ -27,7 +27,7 @@ dCP2 = cell2mat(cellfun(@(X)  sum(X.*dCP2,1)' ,num2cell(groups,1),'UniformOutput
 
 % Posterior Params: size R x Ng
 post_a = repmat(prior_a_mode + 0.5*sum(groups),R,1);
-post_b = prior_b_mode + 0.5*dCP2;
+post_b = 1/prior_b_mode + 0.5*dCP2;
 
 % Varitional Mean Precision
 posterior_precisions = post_a./post_b;
