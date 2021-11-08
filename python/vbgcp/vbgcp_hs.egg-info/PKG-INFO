@@ -1,3 +1,19 @@
+Metadata-Version: 2.1
+Name: vbgcp-hs
+Version: 0.0.1
+Summary: Probabilistic Tensor Decomposition of Count Data (Neural Population Spiking Activity)
+Home-page: https://github.com/hugosou/vbgcp
+Author: Hugo Soulat
+License: UNKNOWN
+Project-URL: Bug Tracker, https://github.com/hugosou/vbgcp/issues
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
 # Probabilistic Tensor Decomposition of Neural Population Spiking Activity
 
 [license-img]: https://img.shields.io/badge/license-MIT-green
@@ -31,7 +47,7 @@ python/examples/demo_tensor_variational_inference.ipynb
 ## Installation 
 
 ```
-git clone git@github.com:hugosou/vbgcp.git
-cd vbgcp/python
-pip install .
+pip install vbgcp-hs
 ```
+
+

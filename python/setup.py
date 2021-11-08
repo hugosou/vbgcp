@@ -1,17 +1,27 @@
-from setuptools import setup
+from setuptools import setup, find_packages
+
+NAME = 'vbgcp'
+DESCRIPTION = 'Probabilistic Tensor Decomposition of Neural Population Spiking Activity'
+AUTHOR = 'Hugo Soulat'
+EMAIL = 'hugo.soulat@gmail.com'
+VERSION = "0.1"
+URL = 'https://github.com/hugosou/vbgcp'
+LICENSE = 'MIT'
 
 install_requires = [
     'numpy',
     'scipy',
-    'munkres'
+    'munkres',
 ]
 
-setup(name="vbgcp",
-      version="0.0.1",
-      description="Probabilistic Tensor Decomposition of Neural Population Spiking Activity",
-      author="Hugo Soulat",
-      url="https://github.com/hugosou/vbgcp/tree/main/python",
-      packages=["vbgcp", "examples"],
-      install_requires=install_requires,
-      license="MIT")
-
+setup(
+    name=NAME,
+    version=VERSION,
+    description=DESCRIPTION,
+    url=URL,
+    author=AUTHOR,
+    author_email=EMAIL,
+    license=LICENSE,
+    install_requires=install_requires,
+    python_requires='>=3.7',
+)

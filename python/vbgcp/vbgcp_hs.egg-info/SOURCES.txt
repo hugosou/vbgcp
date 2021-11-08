@@ -1,0 +1,8 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+vbgcp/vbgcp_hs.egg-info/PKG-INFO
+vbgcp/vbgcp_hs.egg-info/SOURCES.txt
+vbgcp/vbgcp_hs.egg-info/dependency_links.txt
+vbgcp/vbgcp_hs.egg-info/top_level.txt
