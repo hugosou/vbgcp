@@ -1,13 +1,8 @@
-import matplotlib.pyplot as plt
 import numpy as np
-from vbgcp.utils import normalize_cp, plot_factors, cp_to_tensor, get_dim_factors, rand_factors, vectorize, \
-    check_rank_factors, eyes_precisions, zeros_factors, get_AAt, unfold, khatri_rao, fold, compact_to_full_offset, \
-    pg_moment, pg_moment
-
 from vbgcp.components import FitParams, VBGCPPriors, VBGCPPosteriors
+from vbgcp.utils import cp_to_tensor, get_AAt, pg_moment
 from scipy.special import gammaln, psi
 import scipy.optimize
-
 
 import vbgcp._variational_updates
 
@@ -15,12 +10,16 @@ import vbgcp._variational_updates
 class VBGCPTensor(vbgcp._variational_updates.Mixin):
     def __init__(self, tensor_shape, tensor_rank, shape_param=None, fit_params=None, priors=None, posteriors=None):
         """
+        Bayesian tensor CP decomposition of count data.
+        Inference via approx. Variational Inference and Polya-Gamma augmentation.
+        For a complete description, see Soulat et al. (2021).
+
         :param tensor_shape: Dimensions of the problem
         :param tensor_rank: Assumed rank of the decomposed tensor
-        :param shape_param: Shape Parameter of the generative model
-        :param fit_params: Variational Inference Parameters
-        :param priors: Priors for the model variables
-        :param posteriors: Current posterior estimates
+        :param shape_param: Float, Shape Parameter of the generative model
+        :param fit_params: FITParams, Variational Inference Parameters
+        :param priors: VBGCPPriors, Priors for the model variables
+        :param posteriors: VBGCPPosteriors, Current posterior estimates
         """
         # Dimensions of the problem
         self.rank = tensor_rank
@@ -45,8 +44,8 @@ class VBGCPTensor(vbgcp._variational_updates.Mixin):
         self.shape_param = shape_param
 
     def _init_inference(self, observed_tensor):
-        """ Initialize Tensor Decomposition and Variational Inference Parameters
-        """
+        """ Initialize Tensor Decomposition and Variational Inference Parameters """
+
         # TODO: implement sparse block structure detection
 
         # Check Priors and Posteriors shapes
@@ -76,7 +75,7 @@ class VBGCPTensor(vbgcp._variational_updates.Mixin):
         self.posteriors.tensor_m2 = cp_to_tensor(get_AAt(factors_mean, factors_variance))
 
     def variational_inference(self, observed_tensor):
-
+        """ Variational Expectation Maximization  """
         self._init_inference(observed_tensor)
 
         # Log every disppct batches.
@@ -120,7 +119,7 @@ class VBGCPTensor(vbgcp._variational_updates.Mixin):
                       (str(ite).zfill(precn), ite_max, loss, shape))
 
     def _update_shape_param(self, observed_tensor):
-
+        """Variational Maximization Step"""
         # Update method
         shape_update = self.fit_params.shape_update
 
@@ -162,8 +161,6 @@ class VBGCPTensor(vbgcp._variational_updates.Mixin):
             moments = pg_moment(np.ones(batch_size), omega, centered=1)
             alpha_0 = np.expand_dims(moments[:, 0]**2 / moments[:, 1], axis=1)
 
-            #raise NameError('Shape Update not Implemented')
-
             def minus_free_energy(shape_test):
                 shape_test = np.expand_dims(shape_test, axis=0)
 
@@ -179,6 +176,7 @@ class VBGCPTensor(vbgcp._variational_updates.Mixin):
                     , axis=0)
                 return -FE
 
+            # Maximize shape dependent free energy
             shape_new = scipy.optimize.fmin(func=minus_free_energy, x0=shape_old, disp=False)
 
             loss_old = minus_free_energy(shape_old)
@@ -189,32 +187,18 @@ class VBGCPTensor(vbgcp._variational_updates.Mixin):
                 shape_new = shape_old
                 loss_new = loss_old
 
-
-
-
             # Constant (wrt. shape) part of Free Energy (ELBO)
-
-            #self._kl_precision_mode
-            #self._kl_precision_shared
-            #self._kl_offset
-
             minus_free_energy_0 = np.sum(
                 - observed_tensor_reduced*(0.5*(tensor_m1 + offset_m1) - np.log(np.cosh(0.5*omega)))
                 + shape_old*alpha_0*psi(alpha_0*(observed_tensor_reduced+shape_old))
                 - gammaln(alpha_0*(observed_tensor_reduced+shape_old)))
-
-
-            # TODO: add shape dependent terms
 
             minus_free_energy_kl = self._kl_factors() \
                                    + self._kl_offset() \
                                    + self._kl_precision_shared() \
                                    + self._kl_precision_mode()
 
-
             loss_final = loss_new[0] + minus_free_energy_0 + minus_free_energy_kl
-
-            # TO DO: double check signs..
 
             self.shape_param = shape_new
             self.loss_tot.append(loss_final)
@@ -225,59 +209,8 @@ class VBGCPTensor(vbgcp._variational_updates.Mixin):
 
         return
 
-    def _kl_precision_mode(self):
-        if not(self.fit_params.shared_precision_mode is None):
-
-            a_posterior = self.posteriors.a_mode
-            b_posterior = self.posteriors.b_mode
-
-            a_prior = self.priors.a_mode
-            b_prior = self.priors.b_mode
-
-            KL = np.sum(_kl_gamma(a_posterior, a_prior, b_posterior, b_prior))
-
-        else:
-            KL = 0
-
-        return KL
-
-
-    def _kl_precision_shared(self):
-        if any(self.fit_params.shared_precision_dim):
-            a_posterior = self.posteriors.a_shared
-            b_posterior = self.posteriors.b_shared
-
-            a_prior = self.priors.a_shared * np.ones(len(a_posterior))
-            b_prior = self.priors.b_shared * np.ones(len(a_posterior))
-
-            KL = np.sum(_kl_gamma(a_posterior, a_prior, b_posterior, b_prior))
-
-        else:
-            KL = 0
-
-        return KL
-
-    def _kl_offset(self):
-
-        if self.fit_params.fit_offset:
-            to_keep = np.where(self.fit_params.fit_offset_dim)[0]
-            to_remo = np.where(1-np.array(self.fit_params.fit_offset_dim))[0]
-
-            new_order = tuple(np.concatenate((to_keep, to_remo)))
-            new_length = np.prod([self.shape[i] for i in to_keep])
-
-            means = np.reshape(np.transpose(self.posteriors.offset_mean, new_order), (-1))[:new_length]
-            varis = np.reshape(np.transpose(self.posteriors.offset_variance, new_order), (-1))[:new_length]
-            preci = np.reshape(self.priors.offset_precision, (-1))
-
-            KL = np.sum(0.5 * varis *preci - np.log(varis*preci) - means**2*preci -1)
-
-        else:
-            KL = 0
-
-        return KL
-
     def _kl_factors(self):
+        """KL Divergences involving Gaussian distributed rows of the factors"""
 
         KL = 0.0
 
@@ -304,32 +237,77 @@ class VBGCPTensor(vbgcp._variational_updates.Mixin):
 
         return KL
 
+
+    def _kl_offset(self):
+        """KL Divergences involving Gaussian distributed constrained offset"""
+
+        if self.fit_params.fit_offset:
+            to_keep = np.where(self.fit_params.fit_offset_dim)[0]
+            to_remo = np.where(1-np.array(self.fit_params.fit_offset_dim))[0]
+
+            new_order = tuple(np.concatenate((to_keep, to_remo)))
+            new_length = np.prod([self.shape[i] for i in to_keep])
+
+            means = np.reshape(np.transpose(self.posteriors.offset_mean, new_order), (-1))[:new_length]
+            varis = np.reshape(np.transpose(self.posteriors.offset_variance, new_order), (-1))[:new_length]
+            preci = np.reshape(self.priors.offset_precision, (-1))
+
+            KL = np.sum(0.5 * varis *preci - np.log(varis*preci) - means**2*preci -1)
+
+        else:
+            KL = 0
+
+        return KL
+
+
+
+
+    def _kl_precision_mode(self):
+        """KL Divergences involving Gamma distributed precision priors"""
+        if not(self.fit_params.shared_precision_mode is None):
+
+            a_posterior = self.posteriors.a_mode
+            b_posterior = self.posteriors.b_mode
+
+            a_prior = self.priors.a_mode
+            b_prior = self.priors.b_mode
+
+            KL = np.sum(_kl_gamma(a_posterior, a_prior, b_posterior, b_prior))
+
+        else:
+            KL = 0
+
+        return KL
+
+    def _kl_precision_shared(self):
+        """KL Divergences involving Gamma distributed precision priors"""
+        if any(self.fit_params.shared_precision_dim):
+            a_posterior = self.posteriors.a_shared
+            b_posterior = self.posteriors.b_shared
+
+            a_prior = self.priors.a_shared * np.ones(len(a_posterior))
+            b_prior = self.priors.b_shared * np.ones(len(a_posterior))
+
+            KL = np.sum(_kl_gamma(a_posterior, a_prior, b_posterior, b_prior))
+
+        else:
+            KL = 0
+
+        return KL
+
+
 def _kl_gamma(alpha1, alpha2, beta1, beta2):
-    # KL divergence for Gamma distributions
+    """" KL divergence of Gamma distributions """
+
     alpha1 = np.reshape(alpha1, (-1))
     alpha2 = np.reshape(alpha2, (-1))
     beta1 = np.reshape(beta1, (-1))
     beta2 = np.reshape(beta2, (-1))
 
-    k1 = (alpha1-alpha2) * psi(alpha1)
+    k1 = (alpha1 - alpha2) * psi(alpha1)
     k2 = gammaln(alpha2) - gammaln(alpha1)
     k3 = alpha2 * (np.log(beta1) - np.log(beta2))
     k4 = alpha1 * (beta2 - beta1) / beta1
 
     return k1 + k2 + k3 + k4
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -3,7 +3,7 @@ from vbgcp.utils import cp_to_tensor
 
 
 def build_toydaset(tshape=np.array([100, 70, 3, 4, 5]), add_offset=1, add_missing=0, model='negative_binomial'):
-
+    # % Generate a 5D count tensor of rank R = 4
     # Fixed tensor rank = 4
     rank = 4
 
@@ -17,7 +17,6 @@ def build_toydaset(tshape=np.array([100, 70, 3, 4, 5]), add_offset=1, add_missin
 
     # Neuron loadings
     FN = np.random.normal(loc=0.0, scale=2.0, size=(tshape[0], rank))
-
 
     # Neuron Groups
     neurons_groups = np.zeros((tshape[0], 3))
@@ -84,7 +83,6 @@ def build_toydaset(tshape=np.array([100, 70, 3, 4, 5]), add_offset=1, add_missin
         Xtrue = ashape * np.exp(aparam)
         model_tot = {'name': model, "shape": 80}
 
-
     # Model Missing Entries
     if add_missing:
         neuron_expt = (np.array([0, np.floor(tshape[0]/6), np.floor(tshape[0]/2), np.floor(3*tshape[0]/4), tshape[0] ])).astype(int)
@@ -102,12 +100,12 @@ def build_toydaset(tshape=np.array([100, 70, 3, 4, 5]), add_offset=1, add_missin
     params = {
         "factors": factors_true,
         "offset": offset,
-        "offset_dim":offset_dim,
-        "neurons_groups":neurons_groups,
-        "observed_data":observed_data,
-        "observed_tensor":Xobs,
-        "noiseless_tensor":Xtrue,
-        "model":model_tot
+        "offset_dim": offset_dim,
+        "neurons_groups": neurons_groups,
+        "observed_data": observed_data,
+        "observed_tensor": Xobs,
+        "noiseless_tensor": Xtrue,
+        "model": model_tot
     }
 
     return params

@@ -14,7 +14,7 @@ class FitParams:
         :param fit_offset_dim: Offset dimensions to fit
         :param fit_factors_dim: Factors dimensions to fit
         :param fit_shape_param: Do fit shape parameter
-        :param shape_update: Method to estimate PG-KL in ELBO
+        :param shape_update: Method to estimate PG-KL in free energy (ELBO)
         :param shared_precision_dim: Share precision (ARD)
         :param shared_precision_mode: Share precision (Mode-wise)
         :param neuron_groups: Define groups for this mode
@@ -61,7 +61,6 @@ class FitParams:
             assert not(neuron_groups is None), 'No mode groups provided'
             assert (self.shape[shared_precision_mode] == neuron_groups.shape[0]), 'Groups and Mode dimension mismatch'
 
-
         self.neuron_groups = neuron_groups
         self.shared_precision_mode = shared_precision_mode
 
@@ -72,8 +71,17 @@ class FitParams:
 class VBGCPPriors:
     def __init__(self, fit_params: FitParams, factors_mean=None, factors_precision=None,
                  offset_mean=None, offset_precision=None, a_shared=100, b_shared=1, a_mode=100, b_mode=1):
-        """ Priors for Variational Inference """
-        """VBCPPrior"""
+        """ Priors for Variational Inference
+        :param fit_params: FITParams:  Variational Inference Parameters
+        :param factors_mean: Prior mean for the CP factors
+        :param factors_precision: Prior Diagonal Precision Matrices  for the CP factors
+        :param offset_mean: Prior mean  for the offset
+        :param offset_precision: Prior precision  for the offset
+        :param a_shared: 1st Gamma parameter for across-mode precision matrices
+        :param b_shared: 2nd Gamma parameter for across-mode precision matrices
+        :param a_mode: 1st Gamma parameter for within-mode precision matrices
+        :param b_mode: 2nd Gamma parameter for within-mode precision matrices
+        """
 
         # Factors: Mean
         if factors_mean is None:
@@ -131,6 +139,13 @@ class VBGCPPriors:
 class VBGCPPosteriors:
     def __init__(self, fit_params: FitParams, factors_mean=None, factors_variance=None,
                  offset_mean=None, offset_variance=None, latent_mean=None):
+        """ Posteriors for Variational Inference
+        :param fit_params: FITParams:  Variational Inference Parameters
+        :param factors_mean: Posteriors mean for the CP factors
+        :param factors_variance: Posteriors Variance Matrices  for the CP factors
+        :param offset_mean: Posteriors mean  for the offset
+        :param latent_mean: Posteriors mean for the latent
+        """
 
         self.latent_mean = latent_mean
 
@@ -187,30 +202,6 @@ class VBGCPPosteriors:
 
 
 def _init_offset_posterior(tensor_shape, fit_offset_dim, observed_data):
-
-    # # Shape of the compact form
-    # offset_shape = [tensor_shape[ii] for ii in np.where(fit_offset_dim)[0]]
-    #
-    # # Dimensions along which offset can vary
-    # to_ones = np.where(fit_offset_dim)[0]
-    #
-    # # Dimensions along which offset is tiled
-    # to_repeat = np.where(1 - np.array(fit_offset_dim))[0]
-    #
-    # # For reordering
-    # tmp_permute = np.concatenate((to_repeat[:], to_ones[:]))
-    # inv_permute = np.arange(tmp_permute.size)
-    # for i in np.arange(tmp_permute.size):
-    #     inv_permute[tmp_permute[i]] = i
-    #
-    # # Compact Init (could use something else than zeros)
-    # tmp = np.zeros(offset_shape)
-    #
-    # # Tile offset
-    # tmp = np.tile(tmp, np.concatenate(([tensor_shape[i] for i in to_repeat], [1 for _ in to_ones])))
-    #
-    # # Store
-    # offset = np.transpose(tmp, inv_permute) * observed_data
 
     # Shape of the compact form
     offset_shape = [tensor_shape[ii] for ii in np.where(fit_offset_dim)[0]]

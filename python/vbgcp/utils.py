@@ -1,36 +1,46 @@
-import jax.numpy as jnp
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import linear_sum_assignment
 
+""" utils functions to manipulate tensors and fit decompositions
+    tensor: a D-dimensional array (size d1 x .. x dD)
+    factors: a list containing D matrices [|A1, ..., AD|] of size d1xR, .., dD x R (rank-R CP decomposition)  
+"""
+
 
 def vectorize(tensor):
+    """Unfold from tensor to vector"""
     return np.reshape(tensor, (-1))
 
 
 def unfold(tensor, mode):
+    """mode-th tensor unfolding"""
     return np.reshape(np.moveaxis(tensor, mode, 0), (tensor.shape[mode], -1), order='F')
 
 
 def fold(matrix, mode, shape):
+    """Fold back tensor tensor"""
     shape_tmp = [shape[mode], *np.delete(shape, mode)]
     return np.moveaxis(np.reshape(matrix, shape_tmp, order='F'), 0, mode)
 
 
 def zeros_factors(shape, rank):
+    """CP decomposition of zeros"""
     return [np.zeros(shape=[dim, rank]) for dim in shape]
 
 
 def eyes_precisions(shape, rank, weight=1):
+    """Init precision diagonal matrices"""
     return [weight * np.tile(np.reshape(np.eye(rank), (-1)), (dim, 1)) for dim in shape]
 
 
 def rand_factors(shape, rank, weight=1):
+    """Random CP factors"""
     return [weight * np.random.rand(dim, rank) for dim in shape]
 
 
 def plot_factors(factors, variances=None, color='k', nstd=1):
-
+    """Plot a CP decomposition"""
     rank = check_rank_factors(factors)
     shape = get_dim_factors(factors)
 
@@ -66,21 +76,24 @@ def plot_factors(factors, variances=None, color='k', nstd=1):
 
 
 def get_rank_factors(factors):
+    """Get the size fo the first factor"""
     return factors[0].shape[1]
 
 
 def check_rank_factors(factors):
+    """Check the rank of a factors list"""
     rank = factors[0].shape[1]
     assert all([factors[dim].shape[1] == rank for dim in range(len(factors))]), "Incorrect factors dimension"
     return rank
 
 
 def get_dim_factors(factors):
+    """Get the reconstructed tensor dimension"""
     return [factors[dim].shape[0] for dim in range(len(factors))]
 
 
 def khatri_rao_AB(A, B, rank):
-    """ Khatri Rao Product of two matrices A and B with same rank """
+    """ Khatri-Rao Product of two matrices A and B with same rank """
 
     a = A.shape[0]
     b = B.shape[0]
@@ -89,7 +102,7 @@ def khatri_rao_AB(A, B, rank):
 
 
 def khatri_rao(matrices, reverse=False, skip=[]):
-    """ Khatri Rao Product of matrices
+    """ Khatri-Rao Product of a list of matrices
             reverse: the order of KR product
             skip: some matrices in the list
     """
@@ -133,6 +146,7 @@ def cp_to_tensor(factors):
 
 
 def normalize_cp(factors, dosort=1, normdim=None):
+    """Normalise a CP decomposition and inject the normaliser in normdim if provider"""
     # TODO implement the normalization of the variance ?
 
     normed_factors = [factori for factori in factors]
@@ -317,7 +331,8 @@ def get_AAt(factors_mean, factors_variance):
 
 
 def compact_to_full_offset(compact_tensor, full_shape, fit_offset_dim):
-
+    """Reconstruct tensor of size full_shape
+    from the compact representation of a tensor allowed to vary across fit_offset_dim"""
     assert len(full_shape) == len(fit_offset_dim)
 
     # Shape of the compact form
@@ -343,31 +358,34 @@ def compact_to_full_offset(compact_tensor, full_shape, fit_offset_dim):
 
 
 def pg_smoother(c, l, k):
+    """Smooth the limit of Polya-Gamma Laplace derivatives to avoid numerical divergences"""
     return np.exp(-1/(c/l)**k)
 
 
-# phi'(0)
 def pg_lap1(c):
+    """PG(1,c) Laplace 1st derivatives"""
     return -1*(1/(2*c))*np.tanh(c/2)
 
 
-# phi''(0)
 def pg_lap2_tmp(c):
+    """PG(1,c) Laplace 2nd derivatives"""
     return (1/(4*(np.cosh(c/2)**2)*c**3))*(np.sinh(c)-c)
 
 
-# phi'''(0)
 def pg_lap3_tmp(c):
+    """PG(1,c) Laplace 3rd derivatives"""
     return (1/(4*(np.cosh(c/2)**2)*c**5))*(c**2.*np.tanh(c/2) + 3*(c-np.sinh(c)))
 
 
 def pg_lap2(c):
+    """Continuous PG(1,c) Laplace 2nd derivatives"""
     k = 2
     l = 0.01
     return pg_lap2_tmp(c)*pg_smoother(c, l, k) +1/24.*(1-pg_smoother(c, l, k))
 
 
 def pg_lap3(c):
+    """Continuous PG(1,c) Laplace 3rd derivatives"""
     k = 2
     l = 0.01
     return pg_lap3_tmp(c)*pg_smoother(c, l, k) -1/60.*(1-pg_smoother(c, l, k))

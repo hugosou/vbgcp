@@ -1,9 +1,8 @@
-import numpy as np
-from vb_gcp import VBGCPTensor
-from utils import *
-from components import *
 import scipy.io
-
+import numpy as np
+from vbgcp.components import *
+from vbgcp.utils import *
+from vbgcp.vb_gcp import VBGCPTensor
 
 # Tensor Rank
 rank = 10
@@ -13,7 +12,6 @@ tshape = [10, 5, 2]
 
 # Random Factors
 factor_test = rand_factors(tshape, rank)
-
 
 #%% Test: tensor reconstruction
 # Khatri-Rao Products
@@ -127,14 +125,9 @@ def mat_to_vbgcp(mat):
     return vcbgcp, Xobs, CPtrue
 
 
-import scipy.io
-from vbgcp.components import *
-from vbgcp.utils import *
-from vbgcp.vb_gcp import VBGCPTensor
-
 # Raw matlab structure
 mat = scipy.io.loadmat('/home/sou/Documents/PYTHON/tests_matlab/for_testing.mat')
-vbgcp, Xobs, CP = mat_to_vbgcp(mat)
+vbgcp, observed_tensor, CP = mat_to_vbgcp(mat)
 
 # Updated matlab structure
 mat2 = scipy.io.loadmat('/home/sou/Documents/PYTHON/tests_matlab/for_testing2.mat')
@@ -142,31 +135,9 @@ vbgcp2, _, _ = mat_to_vbgcp(mat2)
 
 # Update Raw struture
 vbgcp.fit_params.ite_max = 100
+vbgcp.variational_inference(observed_tensor)
 
-
-#vbgcp.variational_inference(Xobs)
-
-#vbgcp._update_offset(Xobs)
-
-observed_tensor = Xobs
-#%%
-
-offset = mat['offset'][:,0,:,0,0]
-offset_fit = vbgcp.posteriors.offset_mean[:,0,:,0,0]
-
-plt.figure()
-for ii in np.arange(offset.shape[1]):
-    plt.subplot(offset.shape[1],1,ii+1)
-    plt.plot(offset[:,ii])
-    plt.plot(offset_fit[:, ii])
-
-
-
-#%%
-
-
-
-
+# Compare Matlab and Python Updates
 factors_post_mean_diff = np.max([np.max(np.abs( vbgcp.posteriors.factors_mean[ii] - vbgcp2.posteriors.factors_mean[ii]))
               for ii in range(len(observed_tensor.shape))])
 
@@ -195,35 +166,5 @@ print("Factors precision diff: " + str(factors_prior_precision_diff))
 print("Offset mean diff: " + str(offset_mean_diff))
 print("Offset vari diff: "+ str(offset_variance_diff))
 print("Shape diff:" + str(shape_diff))
-
-
-factors_post_mean_diff
-factors_post_variance_diff
-latent_diff
-factors_prior_mean_diff
-factors_prior_precision_diff
-offset_mean_diff
-offset_variance_diff
-shape_diff
-
-
-#%%
-
-models = [expand_factors(CP, 6), vbgcp.posteriors.factors_mean, vbgcp2.posteriors.factors_mean]
-get_similarity(models, ref_model=0)
-
-
-#%%
-
-OT = observed_tensor
-neurons_groups = vbgcp.fit_params.neuron_groups
-OD = vbgcp.fit_params.observed_data
-
-tensor_rank = 6
-fit_params = FitParams(observed_tensor.shape, 6, observed_data=OD, fit_offset_dim=[1, 0, 1, 0, 0],
-                       shared_precision_dim=[0, 1, 1, 1, 1], shared_precision_mode=0,
-                       neuron_groups=neurons_groups, ite_max=200)
-vv = VBGCPTensor(observed_tensor.shape, 6, shape_param=85, fit_params=fit_params)
-vv.variational_inference(OT)
 
 
