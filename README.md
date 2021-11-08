@@ -12,7 +12,7 @@
 
 [![][license-img]][license-url] [![][matlab-img]][matlab-url] [![][python-img]][python-url] 
 
-[Matlab][matlab-url] (recommended) and [Python][python-url] (in developement) implementations of [Soulat et al. (2021)](https://arxiv.org/abs/2030.12345).
+[Matlab][matlab-url] (recommended) and [Python][python-url] (in developement) implementations of [Soulat et al. (2021)](https://neurips.cc/Conferences/2021/ScheduleMultitrack?event=27629).
 
 ![alt text](model_summary.png "Model")
 
