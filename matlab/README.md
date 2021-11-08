@@ -35,13 +35,22 @@ Brett W. Bader, Tamara G. Kolda and others. MATLAB Tensor Toolbox Version 2.6, A
 
 ## Demo
 
-To train the model(s) on the toydataset described in the paper, run:
-
-```
-demo_vbgcp.m
-```
 PG approximation Figures can be generated with: 
 
 ```
 study_polyagamma.m
 ```
+
+To train the model(s) on the toydataset described in the paper, run:
+
+```
+demo_vbgcp.m
+```
+
+The script plot a fit Summary:
+
+![alt text](./qualitative_fit_ard.png "summary")
+
+And a comparison between true and fitted parameters (depending on Automatic Rank Determination options):
+![alt text](./qualitative_fit_cp.png "summary")
+

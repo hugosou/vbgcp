@@ -85,7 +85,6 @@ vi_var = vi_var_with_ard;
 %vi_var = vi_var_no_ard;
 
 %% Plot Fit summary
-
 figure
 subplot(1,2,1); hold on
 plot(1:vi_param.ite_max, shape*ones(vi_param.ite_max,1), 'color','m', 'linewidth',2,'linestyle','--')
@@ -99,7 +98,6 @@ box on; xlabel('Iteration'); title('Approximate FE')
 set(gcf,'position',[1921         340         635         219])
 
 %% Plot Fitted Factors
-
 % Compare fit and simulation
 R = vi_param.R;
 if R > Rtrue
@@ -208,8 +206,6 @@ xlabel('Neuron Dim')
 ylabel('Session Dim')
 colormap('gray');
 
-
-
 %% Helpers
 
 function CPa = augment_cp(CP,r)
@@ -233,15 +229,3 @@ for dimn = 1:length(CP)
 end
 
 end
-
-
-function offsets = init_offsets(Xdims, fit_offset_dim)
-% Init Offset
-
-%offsets_tmp = 0.01*randn(fit_offset_dim.*Xdims+not(fit_offset_dim));
-offsets_tmp = 0*rand(fit_offset_dim.*Xdims+not(fit_offset_dim));
-offsets_tmp = randn(fit_offset_dim.*Xdims+not(fit_offset_dim));
-offsets     = repmat(offsets_tmp, fit_offset_dim + not(fit_offset_dim).*Xdims);
-
-end
-
