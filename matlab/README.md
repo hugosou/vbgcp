@@ -47,7 +47,7 @@ To train the model(s) on the toydataset described in the paper, run:
 demo_vbgcp.m
 ```
 
-The script plot a fit Summary:
+The script plots a fit Summary:
 
 ![alt text](./qualitative_fit_ard.png "summary")
 
