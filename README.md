@@ -12,7 +12,7 @@
 
 [![][license-img]][license-url] [![][matlab-img]][matlab-url] [![][python-img]][python-url] 
 
-[Matlab][matlab-url] (recommended) and [Python][python-url] (in developement) implementations of [Soulat et al. (2021)](https://neurips.cc/Conferences/2021/ScheduleMultitrack?event=27629).
+[Matlab][matlab-url] (recommended) and [Python][python-url] (in developement) implementations of [Soulat et al. (2021)](https://openreview.net/forum?id=1bBF5Zq1YHz).
 
 ![alt text](model_summary.png "Model")
 
@@ -51,4 +51,18 @@ matlab/data_benchmark.m
 matlab/data_benchmark_process.m
 ```
 
+## Citing us
+
+If our work helps you in a way that you feel warrants reference, please cite the following paper:
+
+```
+@inproceedings{
+soulat2021probabilistic,
+title={Probabilistic Tensor Decomposition of Neural Population Spiking Activity},
+author={Hugo Soulat and Sepiedeh Keshavarzi and Troy William Margrie and Maneesh Sahani},
+booktitle={Thirty-Fifth Conference on Neural Information Processing Systems},
+year={2021},
+url={https://openreview.net/forum?id=1bBF5Zq1YHz}
+}
+```
 
