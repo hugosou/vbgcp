@@ -164,7 +164,7 @@ print("Latent Diff: " + str(latent_diff))
 print("Factors prior mean diff: " + str(factors_prior_mean_diff))
 print("Factors precision diff: " + str(factors_prior_precision_diff))
 print("Offset mean diff: " + str(offset_mean_diff))
-print("Offset vari diff: "+ str(offset_variance_diff))
+print("Offset vari diff: " + str(offset_variance_diff))
 print("Shape diff:" + str(shape_diff))
 
 
