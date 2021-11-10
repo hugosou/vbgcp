@@ -175,6 +175,7 @@ class VBGCPTensor(vbgcp._variational_updates.Mixin):
                             - np.log(np.cosh(omega/2)))
                     , axis=0)
                 return -FE
+            # TODO: zeros the derivative of FE using psi function instead. (Faster)
 
             # Maximize shape dependent free energy
             shape_new = scipy.optimize.fmin(func=minus_free_energy, x0=shape_old, disp=False)

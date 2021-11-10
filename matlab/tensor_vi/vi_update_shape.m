@@ -15,14 +15,14 @@ else
     observed_id = find(observed_data);
 end
 
+
 if strcmp(shape_update,'MM-G')
     % Moment Match a Gamma distributions from which we estimate KL
-    
     % Restrick Dataset for fast shape update
-    %Nlimit = 25000;
+    %Nlimit = 50000/2;
     Nlimit = length(observed_id);
     observed_id = observed_id(randperm(length(observed_id),Nlimit));
-    
+
     % Observed data
     Xobsi = Xobs(observed_id(:));
     
@@ -38,19 +38,24 @@ if strcmp(shape_update,'MM-G')
     shape_old = vi_var.shape;
     Om = sqrt(Vm2 + Wm2 + 2*Wm.*Vm);
     
-    % Moment match PG(1, Om) with Gamma(alpha0,beta0)
+     % Moment match PG(1, Om) with Gamma(alpha0,beta0)
     moments = pg_moment(ones(length(Om(:)),1),Om(:),1);
     alpha_0 = moments(:,1).^2./moments(:,2);
+    constant = (alpha_0(:).*psi(alpha_0(:).*(Xobsi(:)+shape_old)) - log(2) - 0.5*(Wm(:)+Vm(:)) - log(cosh(Om(:)/2)));
     
-    % Use linearity in shape and Closed Form KL for gamma to estimate FE(shape)
+    % Use linearity in shape and Closed Form KL for gamma to estimate FE(shape)    
     FE = @(E) sum(gammaln(Xobsi(:)+E(:)')-gammaln(E(:)') - gammaln(alpha_0(:).*(Xobsi(:)+E(:)'))...
-        + E(:)'*(alpha_0(:).*psi(alpha_0(:).*(Xobsi(:)+shape_old)) - log(2) - 0.5*(Wm(:)+Vm(:)) - log(cosh(Om(:)/2)) ));
+        + E(:)'*constant);
     
     % - Free Energy
     mFE = @(E) -FE(E);
     
+    % Derivative of Free Energy
+    dFE = @(E) sum(psi(Xobsi(:)+E(:)')-psi(E(:)') - alpha_0(:).*psi(alpha_0(:).*(Xobsi(:)+E(:)')) + constant);
+
     % Maximize Free Energy
-    shape_new= fminsearch(mFE,shape_old);
+    %shape_new= fminsearch(mFE,shape_old); % Minimize FE
+    shape_new = fzero(dFE,shape_old);     % Zeros of dFE (faster)
     
     % Check that optimization worked
     FE_old = FE(shape_old);
@@ -69,7 +74,7 @@ if strcmp(shape_update,'MM-G')
         Xobsi(:).*(Vm/2+Wm/2 - log(cosh(Om/2)))...
         - shape_old*alpha_0.*psi(alpha_0.*(Xobsi+shape_old)) ...
         + gammaln(alpha_0.*(Xobsi+shape_old)));     %-Xobsi(:)*log(2) - log(factorial(Xobsi(:)))
-    
+     
     % KLs between variational and priors
     FEKL= factors_kl(vi_param,vi_var)...
         + offset_kl(vi_param,vi_var)...

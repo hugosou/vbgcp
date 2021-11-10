@@ -68,7 +68,7 @@ end
 % Shared initialization
 vi_var0 = struct();
 vi_var0.shape = 120;
-vi_param.disppct = 0.1;
+vi_param.disppct = 1;
 
 % Fit With ARD
 [vi_var0,vi_param0] = vi_init(Xobs, vi_param, vi_var0);
@@ -160,9 +160,9 @@ set(gcf,'position',[1921           1         633         961])
 
 %% Plot Fitted Offset 
 
-offset_true = squeeze(true_params.offset(:,1,1,:,1));
-offset_fit_mean = squeeze(vi_var.offset_mean(:,1,1,:,1));
-offset_fit_vari = squeeze(vi_var.offset_variance(:,1,1,:,1));
+offset_true = squeeze(true_params.offset(:,1,:,1,1));
+offset_fit_mean = squeeze(vi_var.offset_mean(:,1,:,1,1));
+offset_fit_vari = squeeze(vi_var.offset_variance(:,1,:,1,1));
 
 figure;
 for ll = 1:size(offset_fit_mean,2)
