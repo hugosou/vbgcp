@@ -38,11 +38,13 @@ if strcmp(vi_param.sparse,'block')
     % Exploit Block Structure of observed_data
     for dimn = 1:length(Xdims)
         if update_CP_dim(dimn)
-            % Loop on dimensions: n-th Unfoldings
+           
             
+            % Loop on dimensions: n-th Unfoldings
             Z  = ((Xobs-Eshape)/2 - Voffset.*Ulatent).*observed_data;
             Zn = tensor_unfold(Z,dimn);
             Un = tensor_unfold(Ulatent,dimn);
+            
             Bn  = KhatriRaoProd_mean(CP_mean,dimn);
             BBn = KhatriRaoProd_var(CP_mean,CP_variance,dimn);
             
@@ -104,20 +106,16 @@ else
             % Loop on dimensions: n-th Unfoldings
             
             Z  = ((Xobs-Eshape)/2 - Voffset.*Ulatent).*observed_data;
-            Zn = tensor_unfold(Z,dimn);
-            Un = tensor_unfold(Ulatent,dimn);
-            Bn  = KhatriRaoProd_mean(CP_mean,dimn);
-            BBn = KhatriRaoProd_var(CP_mean,CP_variance,dimn);
+           
+            % <B'UB>
+            BUZ = mttkrp_custom(Z, CP_mean, dimn);
+            % <B'><U><Z>
+            BUB = mttkrp_custom(Ulatent, get_AAt(CP_mean,CP_variance), dimn);
+            
             
             % Priors
             prec_prior = CP_prior_precision{1,dimn};
             mean_prior = CP_prior_mean{1,dimn};
-            
-            % <B'UB>
-            BUB = Un*BBn;
-            
-             % <B'><U><Z>
-            BUZ = Zn*Bn;
             
             % Temporary Update (precisions are diag)
             prec_post = prec_prior+BUB;
@@ -139,10 +137,10 @@ else
 end
 
 
-% Use last unfolding to get <tensor> and <tensor^2>
-tensor_mean  = tensor_fold(CP_mean{1,dimn}*Bn',Xdims,dimn);
-tensor_2_mean_tmp = kron(ones(1,R),CP_mean{1,dimn}).*repelem(CP_mean{1,dimn}, 1,R);
-tensor2_mean = tensor_fold((tensor_2_mean_tmp+CP_variance{1,dimn})*BBn',Xdims,dimn);
+% Use first unfolding to get <tensor> and <tensor^2>
+tensor_mean   = reshape(CP_mean{1}*KhatriRaoProd(CP_mean{end:-1:2})', Xdims);
+AAt = get_AAt(CP_mean,CP_variance);
+tensor2_mean   = reshape(AAt{1}*KhatriRaoProd(AAt{end:-1:2})', Xdims);
 
 % Save Posterior
 vi_var.CP_mean = CP_mean;
@@ -153,4 +151,46 @@ vi_var.tensor_mean  = tensor_mean;
 vi_var.tensor2_mean = tensor2_mean;
 
 
+end
+
+
+function MTTKRP = mttkrp_custom(tensor, factors, dimn)
+% Adapted from Brett W. Bader, Tamara G. Kolda and others,
+% Tensor Toolbox for MATLAB, Version 3.2.1, www.tensortoolbox.org, April 5, 2021
+
+Xdims = size(tensor);
+N = ndims(tensor);
+R = size(factors{1},2);
+szl = prod(Xdims(1:dimn-1));
+szr = prod(Xdims(dimn+1:N));
+szn = Xdims(dimn);
+
+if dimn == 1
+    % Fast to unfold 1st or last
+    Ur = KhatriRaoProd(factors{N:-1:2});
+    Y = reshape(tensor,szn,szr);
+    MTTKRP =  Y * Ur;
+    
+elseif dimn == N
+    % Fast to unfold 1st or last
+    Ul = KhatriRaoProd(factors{N-1:-1:1});
+    Y = reshape(tensor,szl,szn);
+    MTTKRP = Y' * Ul;
+    
+else
+    % Left and Right KhatriRao
+    Ul = KhatriRaoProd(factors{N:-1:dimn+1});
+    Ur = reshape(KhatriRaoProd(factors{dimn-1:-1:1}), szl, 1, R);
+    
+    % Mult Left
+    Y = reshape(tensor,[],szr);
+    Y = Y * Ul;
+    
+    % Mult Right
+    Y = reshape(Y,szl,szn,R);
+    MTTKRP = bsxfun(@times,Ur,Y);
+    
+    % Reshape
+    MTTKRP = reshape(sum(MTTKRP,1),szn,R);
+end
 end

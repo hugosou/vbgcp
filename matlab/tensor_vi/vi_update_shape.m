@@ -1,5 +1,4 @@
 function vi_var = vi_update_shape(vi_var,vi_param, Xobs)
-% Update model shape parameter
 
 % Update method
 shape_update  = vi_param.shape_update;
@@ -15,12 +14,11 @@ else
     observed_id = find(observed_data);
 end
 
-
 if strcmp(shape_update,'MM-G')
     % Moment Match a Gamma distributions from which we estimate KL
     % Restrick Dataset for fast shape update
-    %Nlimit = 50000/2;
-    Nlimit = length(observed_id);
+    Nlimit = floor(length(observed_id)/3);
+    %Nlimit = length(observed_id);
     observed_id = observed_id(randperm(length(observed_id),Nlimit));
 
     % Observed data
@@ -45,7 +43,7 @@ if strcmp(shape_update,'MM-G')
     
     % Use linearity in shape and Closed Form KL for gamma to estimate FE(shape)    
     FE = @(E) sum(gammaln(Xobsi(:)+E(:)')-gammaln(E(:)') - gammaln(alpha_0(:).*(Xobsi(:)+E(:)'))...
-        + E(:)'*constant);
+        + E(:)'*constant); 
     
     % - Free Energy
     mFE = @(E) -FE(E);
@@ -54,8 +52,8 @@ if strcmp(shape_update,'MM-G')
     dFE = @(E) sum(psi(Xobsi(:)+E(:)')-psi(E(:)') - alpha_0(:).*psi(alpha_0(:).*(Xobsi(:)+E(:)')) + constant);
 
     % Maximize Free Energy
-    %shape_new= fminsearch(mFE,shape_old); % Minimize FE
-    shape_new = fzero(dFE,shape_old);     % Zeros of dFE (faster)
+    shape_new= fminsearch(mFE,shape_old); % Minimize FE
+    %shape_new = fzero(dFE,shape_old);     % Zeros of dFE (fast)
     
     % Check that optimization worked
     FE_old = FE(shape_old);
@@ -85,7 +83,6 @@ if strcmp(shape_update,'MM-G')
     FEt = FEE + FE0 - FEKL;
     vi_var.FE = FEt;
 
-    
 elseif strcmp(shape_update,'fast')
     % Assume "ergodicity": match 1st Moment of the model and observation tensor
     Xhat = exp(tensor_reconstruct(vi_var.CP_mean) + vi_var.offset_mean);
@@ -215,7 +212,7 @@ if sum(vi_param.fit_offset_dim)>0
     varis = extract(vi_var.offset_variance,vi_param.fit_offset_dim);
     preci = vi_var.offset_prior_precision;
     
-    KLtmp = 0.5*varis.*preci-log(varis.*preci)+(means.^2).*preci-1;
+    KLtmp = 0.5* (varis.*preci+(means.^2).*preci-1-log(varis.*preci));
     KL = sum(KLtmp(:));
     
 else
@@ -264,7 +261,9 @@ if sum(vi_param.update_CP_dim)>0
             
             ds = p*v;
             
-            KL = KL + 0.5*trace(ds) - log(det(ds)) + m'*p*m - R;
+            %KL = KL + 0.5*trace(ds) - log(det(ds)) + m'*p*m - R;
+            
+            KL = KL + 0.5* (trace(ds) - log(det(ds)) + m'*p*m - R );
             
         end
     end
@@ -337,3 +336,49 @@ else
 end
 
 end
+
+
+% function KL = latent_kl_moment_match(E0, vi_var,vi_param, Xobs)
+%
+% % Deal with missing entries
+% observed_data = vi_param.observed_data;
+%
+% if all(observed_data(:)==1)
+%     % All data are observed
+%     observed_id = (1:numel(Xobs))';
+% else
+%     % There is missing data.
+%     observed_id = find(observed_data);
+% end
+%
+% Xobsi = Xobs(observed_id(:));
+% Wm  = vi_var.tensor_mean(observed_id(:));
+% Wm2 = vi_var.tensor2_mean(observed_id(:));
+%
+% Vm  = vi_var.offset_mean(observed_id(:));
+% Vm2 = Vm.^2 + vi_var.offset_variance(observed_id(:));
+%
+% Om = sqrt(Vm2 + Wm2 + 2*Wm.*Vm);
+%
+% shape_old = vi_var.shape;
+%
+% %PG1b = Xobsi(:)+shape_old;
+% %PG1c = Om(:);
+%
+% %PG2b = @ (E) Xobsi(:) + E;
+% %PG2c = zeros(observed_id,1);
+%
+%
+% KL =  sum(pg_kl_moment_match_ig(...
+%     Xobsi(:)+shape_old,...
+%     Xobsi(:)+E0,...
+%     Om(:),...
+%     zeros(length(observed_id),1)));
+%
+%
+% %Acons = [1;-1];
+%     %bcons = [1e3;0];
+%     %options = optimoptions('fmincon','Display','none','MaxFunctionEvaluations',10);
+%     %shape_new = fmincon(mFE,shape_old,Acons,bcons, [],[],[],[],[],options);
+%
+% end
